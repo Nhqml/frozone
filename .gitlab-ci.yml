@@ -20,11 +20,11 @@ stages:
 lint-freezer-job:
   stage: lint
   image: "python:3.10.3-slim-bullseye"
+  allow_failure: true
   before_script:
     - pip install cpplint
   script:
     - cpplint freezer/*.c freezer/*.h
-    - echo true
 
 
 # This job will run make on the freezer folder.
