@@ -32,7 +32,7 @@ lint-freezer-job:
 build-freezer-job:
   stage: build
   image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
-  variable:
+  variables:
     ENV_KERNEL_CUSTOM: "5.4.0-104-generic" # used to compile lkm on that specific version
   script:
     - cd freezer
