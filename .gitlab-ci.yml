@@ -25,6 +25,7 @@ lint-freezer-job:
     - pip install cpplint
   script:
     - cpplint freezer/*.c freezer/*.h
+    - echo true
 
 
 # This job will run make on the freezer folder.
