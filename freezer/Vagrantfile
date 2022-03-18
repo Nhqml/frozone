@@ -1,0 +1,23 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV["VAGRANT_EXPERIMENTAL"]="disks"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu2004"
+
+  # Default disk size for vmware is 128GB
+  config.vm.provider "vmware_workstation" do |v|
+    v.memory = "4096"
+  end
+  
+  # Works only for virtualbox
+  config.vm.disk :disk, size: "20GB", primary: true
+  config.vm.provider "virtualbox" do |v|
+    v.memory = "4096"
+    v.cpus = "2"
+  end
+
+  config.vm.provision "shell", path: "vagrant_init.sh"
+  config.vm.synced_folder ".", "/vagrant"
+end
