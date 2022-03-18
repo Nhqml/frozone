@@ -5,3 +5,35 @@ merge-request-pipeline-job:
   script:
     - echo "No tests run, but this pipeline always succeeds and enables merge."
     - echo true
+
+
+stages:
+  - lint    # lint code
+  - build   # make sure it builds
+  - test    # unit tests, e2e test
+  - deploy  # build and zip into artifacts
+
+
+##### FREEZER JOBS #####
+
+# This job will just lint the code, not blocking.
+lint-freezer-job:
+  stage: lint
+  image: "python:3.10.3-slim-bullseye"
+  before_script:
+    - pip install cpplint
+  script:
+    - cpplint freezer/*.c freezer/*.h
+    - echo true
+
+
+# This job will run make on the freezer folder.
+# BLOCKING if make fails
+build-freezer-job:
+  stage: build
+  image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
+  script:
+    - cd freezer
+    - make
+
+##### CARTO JOBS #####
