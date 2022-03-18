@@ -4,6 +4,13 @@ This folder contains all files related to the freezer module, a linux kernel mod
 
 ## Usage
 
+Set your kernel version with :
+
+```bash
+export ENV_KERNEL_CUSTOM=$(uname -r)
+```
+(the environment variable `ENV_KERNEL_CUSTOM` is used in the Makefile for local build AND automated build in the pipeline, and is set to specific versions in the `.gitlab-ci.yml`)
+
 To compile the module :
 ```bash
 make
