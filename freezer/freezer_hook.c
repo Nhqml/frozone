@@ -68,7 +68,7 @@ int init_freezer_syscalls(void)
   original_getuid = ((syscall_wrapper *)sys_call_table_addr)[__NR_getuid];
   if (!original_execve) return -1;
   if (!original_getuid) return -1;
-  
+
   // Replace current syscall with hooked syscall
   ((syscall_wrapper *)sys_call_table_addr)[__NR_execve] = hooked_execve;
 
