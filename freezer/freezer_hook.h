@@ -7,7 +7,7 @@
  *
  * Used to allow write on the syscall table
  */
-int enable_page_rw(void *ptr);
+int enable_page_rw(void* ptr);
 
 /**
  * disable_page_rw - Disable read-write rights on a memory page
@@ -15,7 +15,7 @@ int enable_page_rw(void *ptr);
  *
  * Used to disable write on the syscall table
  */
-int disable_page_rw(void *ptr);
+int disable_page_rw(void* ptr);
 
 /**
  * is_hooked_user - Hook a user based on its uid
@@ -37,7 +37,7 @@ int is_hooked_user(int uid);
  * It blocks the execution for a specific user.
  * It sends the execution flow back to the original execve.
  */
-int hooked_execve(struct pt_regs *regs);
+int hooked_execve(struct pt_regs* regs);
 
 /**
  * init_freezer_syscalls - Initialize the syscall table with our hooked syscalls
