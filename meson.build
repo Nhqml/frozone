@@ -3,5 +3,12 @@ project('frozone', 'c',
   default_options : ['warning_level=3']
 )
 
-subdir('carto')
-#subdir('blocker')
+includes = include_directories('carto/include')
+
+subdir('carto/src')
+#subdir('freezer')
+
+if get_option('buildtype') == 'debug'
+  subdir('tests')
+  subdir('carto/src/tests/')
+endif

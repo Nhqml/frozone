@@ -74,3 +74,6 @@ build.ninja
 
 # Misc
 compile_commands.json
+
+# Doxygen
+doc/

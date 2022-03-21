@@ -1,23 +1,24 @@
 #include <CUnit/Basic.h>
 #include <CUnit/CUnit.h>
 
-#include "test.h"
+#include "test_utils.h"
 
 int main()
 {
-    CU_pSuite pSuite = NULL;
-
     if (CU_initialize_registry() != CUE_SUCCESS)
         return CU_get_error();
 
-    pSuite = CU_add_suite("Tests suite", suite_init, suite_clean);
-    if (NULL == pSuite)
+    /* "utils" Tests Suite */
+    CU_pSuite utils_ts = CU_add_suite("Utils", utils_ts_init, utils_ts_clean);
+    if (NULL == utils_ts)
     {
         CU_cleanup_registry();
         return CU_get_error();
     }
 
-    if (CU_add_test(pSuite, "test", test) == NULL || CU_add_test(pSuite, "Failing test", will_fail) == NULL)
+    if (CU_add_test(utils_ts, "Array::new", test_array_new) == NULL
+        || CU_add_test(utils_ts, "Array::with_capacity", test_array_with_capacity) == NULL
+        || CU_add_test(utils_ts, "Array::push", test_array_push) == NULL)
     {
         CU_cleanup_registry();
         return CU_get_error();

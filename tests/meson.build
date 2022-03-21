@@ -1,10 +1,10 @@
 sources = files([
   'main.c',
-  'test.c',
+  'test_carto.c',
 ])
 
-cunit_tests = executable(
-  'cunit_tests', sources,
+cunit_tests_public = executable(
+  'cunit_tests_public', sources,
   include_directories: includes,
   link_with: carto_lib,
   dependencies: [
@@ -12,4 +12,4 @@ cunit_tests = executable(
   ],
 )
 
-test('CUnit', cunit_tests)
+test('CUnit - Public', cunit_tests_public)

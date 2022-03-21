@@ -1,8 +1,11 @@
 sources = files([
   'carto.c',
+  'utils.c',
+  'users.c',
 ])
 
-carto_lib = library(
+carto_lib = both_libraries(
   'frozone_carto', sources,
-  gnu_symbol_visibility: 'hidden',
+  include_directories: includes,
+  gnu_symbol_visibility: 'hidden'
 )

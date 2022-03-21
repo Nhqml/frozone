@@ -1,18 +1,31 @@
+#include "users.h"
+
 #include <stdio.h>
-#include <utmpx.h>
+#include <string.h>
 
 #include "utils.h"
 
-typedef struct utmpx utmp_t;
-
-void print_users(void)
+utmp_t* clone_utmp(utmp_t* utmp)
 {
-    // Rewind file ptr
-    setutxent();
+    utmp_t* cloned_utmp = xmalloc(sizeof(utmp_t));
 
-    utmp_t* utmp = getutxent();
-    print("%s", utmp->ut_user);
+    cloned_utmp->ut_type = utmp->ut_type;
+    cloned_utmp->ut_pid = utmp->ut_pid;
+    memcpy(cloned_utmp->ut_line, utmp->ut_line, __UT_LINESIZE);
+    memcpy(cloned_utmp->ut_id, utmp->ut_id, 4);
+    memcpy(cloned_utmp->ut_user, utmp->ut_user, __UT_NAMESIZE);
+    memcpy(cloned_utmp->ut_host, utmp->ut_host, __UT_HOSTSIZE);
+    cloned_utmp->ut_exit = utmp->ut_exit;
+    cloned_utmp->ut_session = utmp->ut_session;
+    cloned_utmp->ut_tv = utmp->ut_tv;
 
-    // Closes UTMP file
-    endutxent();
+    return cloned_utmp;
+}
+
+void free_users(utmp_t** users)
+{
+    for (utmp_t** user = users; *user != NULL; ++user)
+        free(*user);
+
+    free(users);
 }
