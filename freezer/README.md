@@ -1,15 +1,15 @@
 # Frozone - freezer module
 
-This folder contains all files related to the freezer module, a linux kernel module used to "freeze" certain components such as the creation of processes, new connections / sockets, new users, etc...
+This folder contains all files related to the freezer module, a linux kernel module used to "freeze" some resources such as the creation of processes, new connections / sockets, user logging in, etc...
 
 ## Usage
 
 Set your kernel version with :
 
 ```bash
-export ENV_KERNEL_CUSTOM=$(uname -r)
+export KERNELDIR=$(uname -r)
 ```
-(the environment variable `ENV_KERNEL_CUSTOM` is used in the Makefile for local build AND automated build in the pipeline, and is set to specific versions in the `.gitlab-ci.yml`)
+(the environment variable `KERNELDIR` is used in the Makefile for local build AND automated build in the pipeline, and is set to specific versions in the `.gitlab-ci.yml`)
 
 To compile the module :
 ```bash
