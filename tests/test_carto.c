@@ -9,23 +9,6 @@ int carto_ts_init(void)
 
 int carto_ts_clean(void)
 {
-    puts("\n\n");
-
-    utmp_t** users = get_users();
-
-    for (utmp_t** user = users; *user != NULL; ++user)
-    {
-        printf("User: '%s'\n", (*user)->ut_user);
-        printf("Host: '%s'\n", (*user)->ut_host);
-        printf("PID: %u\n", (*user)->ut_pid);
-        printf("Device: %s\n", (*user)->ut_line);
-        printf("Time: %d\n", (*user)->ut_tv.tv_sec);
-
-        free(*user);
-    }
-
-    free(users);
-
     return 0;
 }
 
