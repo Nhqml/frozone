@@ -8,6 +8,7 @@
 #include <linux/version.h>
 
 #define SYSCALLSLOG "[freezer][syscalls] "
+#define MAX_SIZE_ARRAY 1024
 
 
 typedef int (* syscall_wrapper)(struct pt_regs *);
@@ -17,6 +18,15 @@ unsigned long sys_call_table_addr;
 syscall_wrapper original_getuid;
 syscall_wrapper original_execve;
 syscall_wrapper original_write;
+
+int file_uid_array[MAX_SIZE_ARRAY];
+int current_file_index = 0;
+int process_uid_array[MAX_SIZE_ARRAY];
+int current_process_index = 0;
+int socket_uid_array[MAX_SIZE_ARRAY];
+int current_socket_index = 0;
+int sessions_uid_array[MAX_SIZE_ARRAY];
+int current_sessions_index = 0;
 
 
 /**
@@ -42,25 +52,12 @@ int enable_page_rw(void *ptr)
  *
  * Used to disable write on the syscall table
  */
-int disable_page_rw(void *ptr)
+int disable_page_rw(void *ptr) 
 {
     unsigned int level;
     pte_t* pte = lookup_address((unsigned long)ptr, &level);
     pte->pte = pte->pte & ~_PAGE_RW;
     return 0;
-}
-
-int hook_syscall(unsigned long syscall_cste, int (*hook)(struct pt_regs*))
-{
-  sys_call_table_addr = kallsyms_lookup_name("sys_call_table");
-
-  enable_page_rw((void *)sys_call_table_addr);
-
-  ((syscall_wrapper *)sys_call_table_addr)[syscall_cste] = *hook;
-
-  disable_page_rw((void *)sys_call_table_addr);
-
-  return 0;
 }
 
 /**
@@ -73,11 +70,23 @@ int hook_syscall(unsigned long syscall_cste, int (*hook)(struct pt_regs*))
  * Usage example to block the user 1000:
  * if (is_hooked_user(1000)) {return 0;}
  */
-int is_hooked_user(int uid)
+int is_hooked_user(int* array, int index)
 {
-    int res = original_getuid(NULL);
-    printk(KERN_INFO SYSCALLSLOG "uid = %d", res);
-    return res == uid;
+	int orig_uid = original_getuid(NULL);
+  int cur = 0;
+
+	printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
+  
+  while (cur < index)
+  {
+    if (array[cur] == orig_uid)
+    {
+      return 1;
+    }
+
+    cur++;
+  }
+	return 0;
 }
 
 /**
@@ -90,48 +99,53 @@ int is_hooked_user(int uid)
  */
 int hooked_execve(struct pt_regs *regs)
 {
-    printk(KERN_INFO SYSCALLSLOG "execve was called");
-    if (is_hooked_user(1001))
-    {
-        printk(KERN_INFO SYSCALLSLOG "excve interrupted for user 1001");
-        return 0;
-    }
+  printk(KERN_INFO SYSCALLSLOG "execve was called");
+
+  if (is_hooked_user(process_uid_array, current_process_index))
+  {
+    printk(KERN_INFO SYSCALLSLOG "excve interrupted");
+
     return (*original_execve)(regs);
+  }
+  return (*original_execve)(regs);
 }
 
 int hooked_write(struct pt_regs *regs)
 {
+  printk(KERN_INFO SYSCALLSLOG "write was called");
+
+  if (is_hooked_user(file_uid_array, current_file_index))
+  {
+    printk(KERN_INFO SYSCALLSLOG "write interrupted");
+    
+    return (*original_write)(regs);
+  }
   return (*original_write)(regs);
 }
 
-int freeze_file(void)
+int add_uid_to_array(int* array, int index, int uid)
 {
-  printk(KERN_INFO SYSCALLSLOG "Freeze file resource");
+  if (index >= MAX_SIZE_ARRAY)
+  {
+    return 0; // datalab
+  }
 
-  hook_syscall(__NR_write, hooked_write);
+  int cur = 0;
+  while (cur < index)
+  {
+    if (array[cur] == uid)
+    {
+      return 0;
+    }
 
-  return 0;
-}
+    cur++;
+  }
 
-int freeze_process(void)
-{
-  printk(KERN_INFO SYSCALLSLOG "Freeze process resource");
+  // uid not aleready in array, so add uid
+  array[index] = uid;
+  printk(KERN_INFO SYSCALLSLOG "Uid %d was added to array", uid);
 
-  hook_syscall(__NR_execve, hooked_execve);
-
-  return 0;
-}
-
-int freeze_network(void)
-{
-  printk(KERN_INFO SYSCALLSLOG "Freeze network resource");
-  return 0;
-}
-
-int freeze_sessions(void)
-{
-  printk(KERN_INFO SYSCALLSLOG "Freeze session resource");
-  return 0;
+  return 1;
 }
 
 int freezer_call_wrapper(struct netlink_cmd *data)
@@ -140,17 +154,21 @@ int freezer_call_wrapper(struct netlink_cmd *data)
   switch (data->resource)
   {
     case FILE:
-      return freeze_file();
+      current_file_index = current_file_index + add_uid_to_array(file_uid_array, current_file_index, data->uid);
+      break;
 
     case PROCESS:
-      return freeze_process();
+      current_process_index = current_process_index + add_uid_to_array(process_uid_array, current_process_index, data->uid);
+      break;
 
     case NETWORK:
-      return freeze_network();
+      current_socket_index = current_socket_index + add_uid_to_array(socket_uid_array, current_socket_index, data->uid);
+      break;
 
     case SESSIONS:
-      return freeze_sessions();  
-    
+      current_sessions_index = current_sessions_index + add_uid_to_array(sessions_uid_array, current_sessions_index, data->uid); 
+      break;
+
     default:
       return -1;
   }
@@ -173,8 +191,8 @@ int init_freezer_syscalls(void)
   if (!original_write) return -1;
   if (!original_execve) return -1;
   if (!original_getuid) return -1;
-  //((syscall_wrapper *)sys_call_table_addr)[__NR_write] = log_write;
-  //((syscall_wrapper *)sys_call_table_addr)[__NR_execve] = log_execve;
+  ((syscall_wrapper *)sys_call_table_addr)[__NR_write] = hooked_write;
+  ((syscall_wrapper *)sys_call_table_addr)[__NR_execve] = hooked_execve;
 
     disable_page_rw((void*)sys_call_table_addr);
 
