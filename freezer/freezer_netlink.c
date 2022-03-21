@@ -1,7 +1,7 @@
 #include <linux/module.h>
 #include <linux/netlink.h>
-#include <linux/skbuff.h> 
-#include <net/sock.h> 
+#include <linux/skbuff.h>
+#include <net/sock.h>
 #include "freezer_hook.h"
 
 #define NETLINK_USER 31
@@ -17,6 +17,7 @@ static int __init freezer_init(void)
 static void __exit freezer_exit(void)
 {
     printk(KERN_INFO NETLINK_LOG "exiting module\n");
+    reset_freezer_syscalls();
 }
 
 module_init(freezer_init);
