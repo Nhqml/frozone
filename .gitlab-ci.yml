@@ -1,38 +1,50 @@
 # TODO: remove this when real CI/CD is in place.
 merge-request-pipeline-job:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-  script:
-    - echo "No tests run, but this pipeline always succeeds and enables merge."
-    - echo true
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    script:
+        - echo "No tests run, but this pipeline always succeeds and enables merge."
+        - echo true
 
 stages:
-  - lint # lint code
-  - build # make sure it builds
-  - test # unit tests, e2e test
-  - deploy # build and zip into artifacts
+    - lint # lint code
+    - build # make sure it builds
+    - test # unit tests, e2e test
+    - deploy # build and zip into artifacts
 
 ##### FREEZER JOBS #####
 
 # This job will just lint the code, not blocking.
 lint-freezer-job:
-  stage: lint
-  image: "python:3.10.3-slim-bullseye"
-  allow_failure: true
-  before_script:
-    - pip install cpplint
-  script:
-    - cpplint freezer/*.c freezer/*.h
-    - echo true
+    stage: lint
+    image: "python:3.10.3-slim-bullseye"
+    allow_failure: true
+    before_script:
+        - pip install cpplint
+    script:
+        - cpplint freezer/*.c freezer/*.h
+        - echo true
 
 # This job will run make on the freezer folder.
 # BLOCKING if make fails
 build-freezer-job:
-  stage: build
-  image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
-  variables:
-    KERNELDIR: "5.4.0-104-generic" # used to compile lkm on that specific version
-  script:
-    - cd freezer
-    - make
+    stage: build
+    image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
+    variables:
+        KERNELDIR: /usr/lib/modules/5.4.0-104-generic/build # used to compile lkm on that specific version
+    script:
+        - cd freezer
+        - make
+
 ##### CARTO JOBS #####
+
+# This job will just lint the code, not blocking.
+lint-carto-job:
+    stage: lint
+    image: "python:3.10.3-slim-bullseye"
+    allow_failure: true
+    before_script:
+        - pip install cpplint
+    script:
+        - cpplint --recursive carto
+        - echo true
