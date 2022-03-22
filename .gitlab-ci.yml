@@ -1,11 +1,3 @@
-# TODO: remove this when real CI/CD is in place.
-merge-request-pipeline-job:
-    rules:
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    script:
-        - echo "No tests run, but this pipeline always succeeds and enables merge."
-        - echo true
-
 stages:
     - lint # lint code
     - build # make sure it builds
@@ -23,7 +15,6 @@ lint-freezer-job:
         - pip install cpplint
     script:
         - cpplint freezer/*.c freezer/*.h
-        - echo true
 
 # This job will run make on the freezer folder.
 # BLOCKING if make fails
@@ -47,4 +38,3 @@ lint-carto-job:
         - pip install cpplint
     script:
         - cpplint --recursive carto
-        - echo true
