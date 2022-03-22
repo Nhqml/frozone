@@ -11,7 +11,9 @@ project('frozone', 'c',
 includes = include_directories('carto/include')
 
 subdir('carto/src')
-#subdir('freezer')
+
+# Not working ATM
+# subdir('freezer')
 
 if get_option('buildtype').startswith('debug')
   subdir('tests')

@@ -19,20 +19,30 @@ TODO
 
 ### Build (debug)
 
-`meson build && meson compile -C build`
+```bash
+meson build && meson compile -C build
+```
 
 ### Test
 
-`meson test -C build`
+```bash
+meson test -C build
+```
 
 #### Verbose mode
 
-`meson test -C build -v`
+```bash
+meson test -C build -v
+```
 
 #### With valgrind
 
-`meson test -C build -v --wrap='valgrind'`
+```bash
+meson test -C build -v --wrap='valgrind'
+```
 
 ### Build (release)
 
-`meson --buildtype=release build-release && meson compile -C build-release`
+```bash
+meson --buildtype=release build-release && meson compile -C build-release
+```

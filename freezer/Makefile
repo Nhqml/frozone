@@ -1,3 +1,4 @@
+ifeq ($(KERNELRELEASE),)
 # Assume the source tree is where the running kernel was built
 # You should set KERNELDIR in the environment if it's elsewhere
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
@@ -15,5 +16,9 @@ clean:
 
 .PHONY: all modules clean
 
+else
+
 obj-m := freezer_module.o
 freezer_module-objs := freezer_hook.o freezer_netlink.o
+
+endif

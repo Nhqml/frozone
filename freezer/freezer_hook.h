@@ -1,6 +1,8 @@
 #ifndef FREEZER_HOOK_H
 #define FREEZER_HOOK_H
 
+#include <asm/ptrace.h>
+
 /**
  * enable_page_rw - Enable read-write rights on a memory page
  * @ptr: ptr to memory page
