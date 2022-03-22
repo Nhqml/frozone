@@ -117,7 +117,6 @@ int hooked_write(struct pt_regs *regs)
   if (is_hooked_user(file_uid_array, current_file_index))
   {
     printk(KERN_INFO SYSCALLSLOG "write interrupted");
-
     return (*original_write)(regs);
   }
   return (*original_write)(regs);
