@@ -104,7 +104,7 @@ Array* array_push(Array* a, void* element);
 ** \brief Destroy the array
 **
 ** **Warning** This does **NOT** free the elements stored in the array! But this will free the whole array as well as
-*the struct
+** the struct
 **
 ** \param a The array
 */
@@ -113,7 +113,7 @@ void array_destroy(Array* a);
 /**
 ** \brief Returns the underlying "raw" C-array
 **
-** **Warnint** It will only free the memory of the struct, not the memory of the actual array
+** **Warning** It will only free the memory of the struct, not the memory of the actual array
 ** The caller is therefore responsible of freeing the array once it does not need it anymore
 **
 ** \param a The array

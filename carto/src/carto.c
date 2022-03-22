@@ -18,7 +18,7 @@ utmp_t** get_users(void)
         // Keep only normal processes
         if (utmp->ut_type == USER_PROCESS)
         {
-            // As specified in the doc, returned pointer points to 'static' memory that we cannot "own". Therfore we
+            // As specified in the doc, returned pointer points to 'static' memory that we cannot "own". Therefore we
             // must copy the whole utmp
             utmp_t* cloned_utmp = clone_utmp(utmp);
             array_push(a, cloned_utmp);
