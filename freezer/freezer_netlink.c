@@ -17,7 +17,7 @@ static void freezer_recv_msg(struct sk_buff *skb)
     struct sk_buff *skb_out;
     int pid = 0;
     int res = 0;
-    int freezer_wrapper_res = 0; 
+    int freezer_wrapper_res = 0;
 
     printk(KERN_INFO NETLINK_LOG "entering: %s\n", __FUNCTION__);
 
@@ -42,7 +42,7 @@ static void freezer_recv_msg(struct sk_buff *skb)
     // put the empty message (with response in the msg.type) on socket buffer
     nlh = nlmsg_put(skb_out, 0, 0, freezer_wrapper_res, 0, 0);
     NETLINK_CB(skb_out).dst_group = 0; // not in mcast group
-    
+
     // send the message
     res = nlmsg_unicast(nl_sk, skb_out, pid);
 
@@ -54,8 +54,8 @@ static int __init freezer_init(void)
 {
     printk(KERN_INFO NETLINK_LOG "entering: %s\n", __FUNCTION__);
     struct netlink_kernel_cfg cfg =
-    { 
-        .input = freezer_recv_msg 
+    {
+        .input = freezer_recv_msg
     };
 
     nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, &cfg);

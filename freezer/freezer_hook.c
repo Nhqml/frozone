@@ -52,7 +52,7 @@ int enable_page_rw(void *ptr)
  *
  * Used to disable write on the syscall table
  */
-int disable_page_rw(void *ptr) 
+int disable_page_rw(void *ptr)
 {
     unsigned int level;
     pte_t* pte = lookup_address((unsigned long)ptr, &level);
@@ -76,7 +76,7 @@ int is_hooked_user(int* array, int index)
   int cur = 0;
 
 	printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
-  
+
   while (cur < index)
   {
     if (array[cur] == orig_uid)
@@ -117,7 +117,7 @@ int hooked_write(struct pt_regs *regs)
   if (is_hooked_user(file_uid_array, current_file_index))
   {
     printk(KERN_INFO SYSCALLSLOG "write interrupted");
-    
+
     return (*original_write)(regs);
   }
   return (*original_write)(regs);
@@ -149,7 +149,7 @@ int add_uid_to_array(int* array, int index, int uid)
 }
 
 int freezer_call_wrapper(struct netlink_cmd *data)
-{	
+{
   printk("freezer wrapper called");
   switch (data->resource)
   {
@@ -174,7 +174,7 @@ int freezer_call_wrapper(struct netlink_cmd *data)
   }
 
   return 0;
-}	
+}
 
 int init_freezer_syscalls(void)
 {
