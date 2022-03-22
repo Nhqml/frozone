@@ -120,3 +120,11 @@ void array_destroy(Array* a);
 ** \return void**
 */
 void** array_as_raw(Array* a);
+
+/**
+** \brief Returns an array of integers representing pids or file descriptors
+**
+** \param dir_path String representing a path to a directory
+** \return int*
+*/
+int* get_num_dir_contents(char* dir_path);

@@ -40,33 +40,9 @@ utmp_t** get_users(void)
     return (utmp_t**)array_as_raw(a);
 }
 
-int* get_num_dir_contents(char* dir_path)
+pid_t* get_processes(char* dir_path)
 {
-    DIR* dir = NULL;
-    struct dirent* dir_cur = NULL;
-
-    dir = opendir(dir_path);
-    
-    // log instead of error
-    if (dir == NULL)
-        error(1, errno, "failed to open %s directory", dir_path);
-    
-    Array* a = array_new();
-
-    while ((dir_cur = readdir(dir)) != NULL)
-    {
-        int id = atoi(dir_cur->d_name);
-
-        // if pid is 0, atoi did not encounter a valid number
-        if (id)
-            array_push(a, id);
-    }
-
-    closedir(dir);
-
-    array_push(a, NULL);
-
-    return (int*)array_as_raw(a);
+    return get_num_dir_contents("/proc");
 }
 
 void get_connections(void) {}
