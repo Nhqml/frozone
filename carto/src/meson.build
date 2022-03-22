@@ -1,5 +1,7 @@
 sources = files([
   'carto.c',
+  'fd.c',
+  'process.c',
   'utils.c',
   'users.c',
 ])

@@ -3,6 +3,8 @@
 #define __UNUSED__        __attribute__((unused))
 #define __VISIBILITY__(V) __attribute__((visibility(V)))
 
+#define _GNU_SOURCE
+
 #include <utmpx.h>
 
 typedef struct utmpx utmp_t;
@@ -17,7 +19,7 @@ utmp_t** get_users(void);
 // TODO: add parameter to filter user types
 
 __VISIBILITY__("default")
-void get_processes(void);
+pid_t** get_processes(void);
 
 __VISIBILITY__("default")
 void get_connections(void);
