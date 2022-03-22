@@ -139,7 +139,7 @@ int main()
         return -1;
     }
 
-    int bytes_send = send_message(sock_fd, 2, 1000);
+    int bytes_send = send_message(sock_fd, 2, 1001);
     if (bytes_send < 0)
     {
         return -1;
