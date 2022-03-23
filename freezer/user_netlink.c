@@ -120,7 +120,14 @@ int receive_message(int sock_fd)
 
     printf("Received message payload: %d\n", nlh->nlmsg_type);
 
-    return res_msg;
+    if (nlh->nlmsg_type == NLMSG_DONE)
+    {
+        return res_msg;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 int exit_socket(int sock_fd)
@@ -131,7 +138,7 @@ int exit_socket(int sock_fd)
     return close(sock_fd);
 }
 
-int main()
+int send_socket_msg(int resource, int uid)
 {
     int sock_fd = init_socket();
     if (sock_fd < 0)
@@ -139,15 +146,17 @@ int main()
         return -1;
     }
 
-    int bytes_send = send_message(sock_fd, 2, 1001);
+    int bytes_send = send_message(sock_fd, resource, uid);
     if (bytes_send < 0)
     {
+        exit_socket(sock_fd);
         return -1;
     }
 
     int bytes_received = receive_message(sock_fd);
     if (bytes_received < 0)
     {
+        exit_socket(sock_fd);
         return -1;
     }
 
