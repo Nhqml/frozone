@@ -15,6 +15,7 @@ static void freezer_recv_msg(struct sk_buff* skb)
 {
     struct nlmsghdr* nlh;
     struct sk_buff* skb_out;
+    struct netlink_cmd* data;
     int pid = 0;
     int res = 0;
     int freezer_wrapper_res = 0;
@@ -22,7 +23,7 @@ static void freezer_recv_msg(struct sk_buff* skb)
     printk(KERN_INFO NETLINK_LOG "entering: %s\n", __FUNCTION__);
 
     nlh = (struct nlmsghdr*)skb->data;
-    struct netlink_cmd* data = (struct netlink_cmd*)nlmsg_data(nlh);
+    data = (struct netlink_cmd*)nlmsg_data(nlh);
     printk(KERN_INFO NETLINK_LOG "resource: %d\n", data->resource);
     printk(KERN_INFO NETLINK_LOG "uid: %d\n", data->uid);
     pid = nlh->nlmsg_pid; /*pid of sending process */
@@ -52,8 +53,9 @@ static void freezer_recv_msg(struct sk_buff* skb)
 
 static int __init freezer_init(void)
 {
-    printk(KERN_INFO NETLINK_LOG "entering: %s\n", __FUNCTION__);
     struct netlink_kernel_cfg cfg = { .input = freezer_recv_msg };
+
+    printk(KERN_INFO NETLINK_LOG "entering: %s\n", __FUNCTION__);
 
     nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, &cfg);
     if (!nl_sk)

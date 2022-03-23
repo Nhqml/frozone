@@ -125,12 +125,12 @@ int hooked_write(struct pt_regs *regs)
 
 int add_uid_to_array(int* array, int index, int uid)
 {
+  int cur = 0;
   if (index >= MAX_SIZE_ARRAY)
   {
     return 0; // datalab
   }
-
-  int cur = 0;
+ 
   while (cur < index)
   {
     if (array[cur] == uid)
