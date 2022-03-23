@@ -171,6 +171,7 @@ int add_uid_to_array(int* array, int index, int uid)
     {
         return 0; // datalab
     }
+    int cur = 0;
     while (cur < index)
     {
         if (array[cur] == uid)
