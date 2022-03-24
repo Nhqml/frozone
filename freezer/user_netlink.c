@@ -28,7 +28,7 @@ char* my_exact_copy(char *dest, char*src, size_t len)
 int send_message(int sock_fd, int resource, int uid)
 {
     printf("Sending message to kernel\n");
-        
+
     // allocate netlink message structure
     nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
     if (nlh == NULL)
@@ -46,7 +46,7 @@ int send_message(int sock_fd, int resource, int uid)
     // set data struct
     struct netlink_cmd data =
     {
-        .resource = resource, 
+        .resource = resource,
         .uid = uid
     };
 
