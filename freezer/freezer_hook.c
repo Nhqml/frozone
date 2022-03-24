@@ -165,7 +165,7 @@ int hooked_write(struct pt_regs* regs)
     return (*original_write)(regs);
 }
 
-int add_uid_to_array(int* array, int *index, int uid)
+int add_uid_to_array(int* array, int *index, unsigned int uid)
 {
     int cur = 0;
     if (*index >= MAX_SIZE_ARRAY)
@@ -191,7 +191,7 @@ int add_uid_to_array(int* array, int *index, int uid)
     return 1;
 }
 
-int remove_uid_to_array(int *array, int *index, int uid)
+int remove_uid_to_array(int *array, int *index, unsigned int uid)
 {
     int cur = 0;
     int is_rm_index = 0; // false

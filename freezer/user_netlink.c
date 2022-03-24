@@ -4,6 +4,8 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <utmpx.h>
+#include <pwd.h>
 #include "resource_com.h"
 
 #define NETLINK_USER 31
@@ -25,7 +27,7 @@ char* my_exact_copy(char *dest, char*src, size_t len)
     return dest;
 }
 
-int send_message(int sock_fd, int resource, int uid, int is_lock)
+int send_message(int sock_fd, int resource, unsigned int uid, int is_lock)
 {
     printf("Sending message to kernel\n");
         
@@ -74,7 +76,7 @@ int send_message(int sock_fd, int resource, int uid, int is_lock)
         return -1;
     }
 
-    free(nlh);
+    //free(nlh);
     return res_msg;
 }
 
@@ -134,12 +136,17 @@ int receive_message(int sock_fd)
 int exit_socket(int sock_fd)
 {
     printf("Exiting socket\n");
+    
+    if (nlh != NULL)
+    {
+        free(nlh);
+    }
 
-    // close coket
+    // close socket
     return close(sock_fd);
 }
 
-int send_socket_msg(int resource, int uid, int is_lock)
+int send_socket_msg(int resource, unsigned int uid, int is_lock)
 {
     int sock_fd = init_socket();
     if (sock_fd < 0)
@@ -163,3 +170,41 @@ int send_socket_msg(int resource, int uid, int is_lock)
 
     return exit_socket(sock_fd);
 }
+
+int send_socket_msg_except_uid(int resource, unsigned int uid, int is_lock)
+{
+    struct passwd *p;
+    struct utmpx* entry;
+    int res = 0;
+
+    // Rewind file ptr
+    setutxent();
+
+    entry = getutxent();
+    while (entry != NULL)
+    {
+        p = getpwnam(entry->ut_user);
+
+        if (p != NULL)
+        {
+            printf("For the name %s, the uid is %d\n", entry->ut_user, p->pw_uid);
+
+            if (p->pw_uid != uid)
+            {
+                res = send_socket_msg(resource, p->pw_uid, is_lock);
+                if (res < 0)
+                {
+                    endutxent();
+                    return -1;
+                }
+            }
+        }
+
+        entry = getutxent();
+    }
+
+    // Closes UTMP file
+    endutxent();
+    return 1;
+}
+

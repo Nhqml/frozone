@@ -14,7 +14,7 @@
 struct netlink_cmd
 {
     int resource;   // resource to block
-    int uid;        // user id to block
+    unsigned int uid;        // user id to block
     int is_lock;    // block or unblock the resource
 };
 

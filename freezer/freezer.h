@@ -16,25 +16,49 @@ __VISIBILITY__("default")
 int freeze_files(void);
 
 __VISIBILITY__("default")
-int freeze_users_uid(int uid);
+int freeze_users_uid(unsigned int uid);
 
 __VISIBILITY__("default")
-int freeze_processes_uid(int uid);
+int freeze_processes_uid(unsigned int uid);
 
 __VISIBILITY__("default")
-int freeze_connections_uid(int uid);
+int freeze_connections_uid(unsigned int uid);
 
 __VISIBILITY__("default")
-int freeze_files_uid(int uid);
+int freeze_files_uid(unsigned int uid);
 
 __VISIBILITY__("default")
-int unfreeze_users_uid(int uid);
+int unfreeze_users_uid(unsigned int uid);
 
 __VISIBILITY__("default")
-int unfreeze_processes_uid(int uid);
+int unfreeze_processes_uid(unsigned int uid);
 
 __VISIBILITY__("default")
-int unfreeze_connections_uid(int uid);
+int unfreeze_connections_uid(unsigned int uid);
 
 __VISIBILITY__("default")
-int unfreeze_files_uid(int uid);
+int unfreeze_files_uid(unsigned int uid);
+
+__VISIBILITY__("default")
+int freeze_users_except_uid(unsigned int uid);
+
+__VISIBILITY__("default")
+int freeze_processes_except_uid(unsigned int uid);
+
+__VISIBILITY__("default")
+int freeze_connections_except_uid(unsigned int uid);
+
+__VISIBILITY__("default")
+int freeze_files_except_uid(unsigned int uid);
+
+__VISIBILITY__("default")
+int unfreeze_users_except_uid(unsigned int uid);
+
+__VISIBILITY__("default")
+int unfreeze_processes_except_uid(unsigned int uid);
+
+__VISIBILITY__("default")
+int unfreeze_connections_except_uid(unsigned int uid);
+
+__VISIBILITY__("default")
+int unfreeze_files_except_uid(unsigned int uid);
