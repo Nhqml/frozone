@@ -26,3 +26,15 @@ int freeze_connections_uid(int uid);
 
 __VISIBILITY__("default")
 int freeze_files_uid(int uid);
+
+__VISIBILITY__("default")
+int unfreeze_users_uid(int uid);
+
+__VISIBILITY__("default")
+int unfreeze_processes_uid(int uid);
+
+__VISIBILITY__("default")
+int unfreeze_connections_uid(int uid);
+
+__VISIBILITY__("default")
+int unfreeze_files_uid(int uid);

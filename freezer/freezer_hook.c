@@ -76,7 +76,7 @@ int is_hooked_user(int* array, int index)
     int orig_uid = original_getuid(NULL);
     int cur = 0;
 
-    printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
+    //printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
 
     while (cur < index)
     {
@@ -100,7 +100,7 @@ int is_hooked_user(int* array, int index)
  */
 int hooked_execve(struct pt_regs* regs)
 {
-    printk(KERN_INFO SYSCALLSLOG "execve was called");
+    //printk(KERN_INFO SYSCALLSLOG "execve was called");
 
     if (is_hooked_user(process_uid_array, current_process_index))
     {
@@ -121,7 +121,7 @@ int hooked_execve(struct pt_regs* regs)
  */
 int hooked_connect(struct pt_regs* regs)
 {
-    printk(KERN_INFO SYSCALLSLOG "connect was called\n");
+    //printk(KERN_INFO SYSCALLSLOG "connect was called\n");
 
     struct __user sockaddr_in* sk = (struct sockaddr_in*)regs->si;
     struct sockaddr_in* copied_sk = kzalloc(sizeof(sk), GFP_KERNEL);
@@ -165,14 +165,15 @@ int hooked_write(struct pt_regs* regs)
     return (*original_write)(regs);
 }
 
-int add_uid_to_array(int* array, int index, int uid)
+int add_uid_to_array(int* array, int *index, int uid)
 {
-    if (index >= MAX_SIZE_ARRAY)
+    int cur = 0;
+    if (*index >= MAX_SIZE_ARRAY)
     {
         return 0; // datalab
     }
-    int cur = 0;
-    while (cur < index)
+
+    while (cur < *index)
     {
         if (array[cur] == uid)
         {
@@ -183,37 +184,108 @@ int add_uid_to_array(int* array, int index, int uid)
     }
 
     // uid not already in array, so add uid
-    array[index] = uid;
+    array[*index] = uid;
+    *index = *index + 1;
     printk(KERN_INFO SYSCALLSLOG "Uid %d was added to array", uid);
 
     return 1;
 }
 
-int freezer_call_wrapper(struct netlink_cmd* data)
+int remove_uid_to_array(int *array, int *index, int uid)
+{
+    int cur = 0;
+    int is_rm_index = 0; // false
+
+    if (*index >= MAX_SIZE_ARRAY)
+    {
+        return 0; // datalab
+    }
+
+    while (cur < *index)
+    {
+        if (array[cur] == uid)
+        {
+            is_rm_index = 1;
+            break;
+        }
+
+        cur++;
+    }
+
+    if (is_rm_index == 0)
+    {
+        return 0;
+    }
+
+    (*index)--;
+
+    while (cur < *index)
+    {
+        array[cur] = array[cur + 1];
+        cur++;
+    }
+
+    printk(KERN_INFO SYSCALLSLOG "Uid %d was removed from array", uid);
+    printk(KERN_INFO SYSCALLSLOG "array[0] = %d", array[0]);
+    printk(KERN_INFO SYSCALLSLOG "array[1] = %d", array[1]);
+    printk(KERN_INFO SYSCALLSLOG "index = %d", *index);
+
+    return 1;
+}
+
+int freezer_call_wrapper(struct netlink_cmd *data)
 {
     printk("freezer wrapper called");
-    switch (data->resource)
+    if (data->is_lock == LOCK)
     {
-    case FILE:
-        current_file_index = current_file_index + add_uid_to_array(file_uid_array, current_file_index, data->uid);
-        break;
+        switch (data->resource)
+        {
+        case FILE:
+            add_uid_to_array(file_uid_array, &current_file_index, data->uid);
+            break;
 
-    case PROCESS:
-        current_process_index =
-            current_process_index + add_uid_to_array(process_uid_array, current_process_index, data->uid);
-        break;
+        case PROCESS:
+            add_uid_to_array(process_uid_array, &current_process_index, data->uid);
+            break;
 
-    case NETWORK:
-        current_socket_index =
-            current_socket_index + add_uid_to_array(socket_uid_array, current_socket_index, data->uid);
-        break;
+        case NETWORK:
+            add_uid_to_array(socket_uid_array, &current_socket_index, data->uid);
+            break;
 
-    case SESSIONS:
-        current_sessions_index =
-            current_sessions_index + add_uid_to_array(sessions_uid_array, current_sessions_index, data->uid);
-        break;
+        case SESSIONS:
+            add_uid_to_array(sessions_uid_array, &current_sessions_index, data->uid); 
+            break;
 
-    default:
+        default:
+            return -1;
+        }
+    }
+    else if (data->is_lock == UNLOCK)
+    {
+        switch (data->resource)
+        {
+        case FILE:
+            remove_uid_to_array(file_uid_array, &current_file_index, data->uid);
+            break;
+
+        case PROCESS:
+            remove_uid_to_array(process_uid_array, &current_process_index, data->uid);
+            break;
+
+        case NETWORK:
+            remove_uid_to_array(socket_uid_array, &current_socket_index, data->uid);
+            break;
+
+        case SESSIONS:
+            remove_uid_to_array(sessions_uid_array, &current_sessions_index, data->uid); 
+            break;
+
+        default:
+            return -1;
+        }
+    }
+    else
+    {
         return -1;
     }
 

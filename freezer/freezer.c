@@ -26,20 +26,40 @@ int freeze_files(void)
 
 int freeze_users_uid(int uid)
 {
-    return send_socket_msg(SESSIONS, uid);
+    return send_socket_msg(SESSIONS, uid, LOCK);
 }
 
 int freeze_processes_uid(int uid)
 {
-    return send_socket_msg(PROCESS, uid);
+    return send_socket_msg(PROCESS, uid, LOCK);
 }
 
 int freeze_connections_uid(int uid)
 {
-    return send_socket_msg(NETWORK, uid);
+    return send_socket_msg(NETWORK, uid, LOCK);
 }
 
 int freeze_files_uid(int uid)
 {
-    return send_socket_msg(FILE, uid);
+    return send_socket_msg(FILE, uid, LOCK);
+}
+
+int unfreeze_users_uid(int uid)
+{
+    return send_socket_msg(SESSIONS, uid, UNLOCK);
+}
+
+int unfreeze_processes_uid(int uid)
+{
+    return send_socket_msg(PROCESS, uid, UNLOCK);
+}
+
+int unfreeze_connections_uid(int uid)
+{
+    return send_socket_msg(NETWORK, uid, UNLOCK);
+}
+
+int unfreeze_files_uid(int uid)
+{
+    return send_socket_msg(FILE, uid, UNLOCK);
 }

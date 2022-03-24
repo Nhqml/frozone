@@ -7,10 +7,15 @@
 #define NETWORK     3
 #define SESSIONS    4
 
+// Define lock or unlock resources
+#define LOCK        1
+#define UNLOCK      2
+
 struct netlink_cmd
 {
     int resource;   // resource to block
     int uid;        // user id to block
+    int is_lock;    // block or unblock the resource
 };
 
 #endif

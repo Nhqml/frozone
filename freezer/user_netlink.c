@@ -25,7 +25,7 @@ char* my_exact_copy(char *dest, char*src, size_t len)
     return dest;
 }
 
-int send_message(int sock_fd, int resource, int uid)
+int send_message(int sock_fd, int resource, int uid, int is_lock)
 {
     printf("Sending message to kernel\n");
         
@@ -47,7 +47,8 @@ int send_message(int sock_fd, int resource, int uid)
     struct netlink_cmd data =
     {
         .resource = resource, 
-        .uid = uid
+        .uid = uid,
+        .is_lock = is_lock
     };
 
     // add message to the netlink message strcuture
@@ -138,7 +139,7 @@ int exit_socket(int sock_fd)
     return close(sock_fd);
 }
 
-int send_socket_msg(int resource, int uid)
+int send_socket_msg(int resource, int uid, int is_lock)
 {
     int sock_fd = init_socket();
     if (sock_fd < 0)
@@ -146,7 +147,7 @@ int send_socket_msg(int resource, int uid)
         return -1;
     }
 
-    int bytes_send = send_message(sock_fd, resource, uid);
+    int bytes_send = send_message(sock_fd, resource, uid, is_lock);
     if (bytes_send < 0)
     {
         exit_socket(sock_fd);
