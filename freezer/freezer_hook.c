@@ -1,6 +1,7 @@
 #include "freezer_hook.h"
 
 #include <asm/ptrace.h>
+#include <linux/errno.h>
 #include <linux/in.h>
 #include <linux/inet.h>
 #include <linux/kallsyms.h>
@@ -19,6 +20,7 @@ unsigned long sys_call_table_addr;
 syscall_wrapper original_getuid;
 syscall_wrapper original_execve;
 syscall_wrapper original_write;
+syscall_wrapper original_openat;
 syscall_wrapper original_connect;
 
 int file_uid_array[MAX_SIZE_ARRAY];
@@ -29,6 +31,19 @@ int socket_uid_array[MAX_SIZE_ARRAY];
 int current_socket_index = 0;
 int sessions_uid_array[MAX_SIZE_ARRAY];
 int current_sessions_index = 0;
+
+
+int uid_is_in_array(int *array, int uid)
+{
+    int i = 0;
+    for (; i < MAX_SIZE_ARRAY; i++)
+    {
+        if (uid == array[i])
+            return 0;
+    }
+    return -1;
+}
+
 
 /**
  * enable_page_rw - Enable read-write rights on a memory page
@@ -76,7 +91,7 @@ int is_hooked_user(int* array, int index)
     int orig_uid = original_getuid(NULL);
     int cur = 0;
 
-    //printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
+    // printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
 
     while (cur < index)
     {
@@ -165,20 +180,44 @@ int hooked_write(struct pt_regs* regs)
     return (*original_write)(regs);
 }
 
+int hooked_openat(struct pt_regs* regs)
+{
+    // block creation of sessions FROM blocked users
+    if (is_hooked_user(sessions_uid_array, current_sessions_index))
+    {
+        const char *passwd_file = "/etc/passwd";
+        char opened_file[NAME_MAX] = {0};
+        char __user *op_file_user = (char *)regs->si;
+        unsigned long error = strncpy_from_user(opened_file, op_file_user, NAME_MAX);
+        if (error > 0)
+        {
+            if (strncmp(opened_file, passwd_file, NAME_MAX) == 0)
+            {
+                printk(KERN_INFO SYSCALLSLOG "openat interrupted");
+                return EACCES;
+            }
+        }
+    }
+
+    // block opening of files for blocked users
+    if (is_hooked_user(file_uid_array, current_file_index))
+    {
+        printk(KERN_INFO SYSCALLSLOG "openat interrupted");
+        return EACCES;
+    }
+
+    return (*original_openat)(regs);
+}
+
 int add_uid_to_array(int* array, int *index, unsigned int uid)
 {
     int cur = 0;
     if (*index >= MAX_SIZE_ARRAY)
-    {
-        return 0; // datalab
-    }
 
     while (cur < *index)
     {
         if (array[cur] == uid)
-        {
             return 0;
-        }
 
         cur++;
     }
@@ -300,19 +339,20 @@ int init_freezer_syscalls(void)
 
     enable_page_rw((void*)sys_call_table_addr);
 
-    // TODO: refactor this
+    // Save the original syscalls pointer
+    original_openat = ((syscall_wrapper*)sys_call_table_addr)[__NR_openat];
     original_write = ((syscall_wrapper*)sys_call_table_addr)[__NR_write];
     original_execve = ((syscall_wrapper*)sys_call_table_addr)[__NR_execve];
     original_getuid = ((syscall_wrapper*)sys_call_table_addr)[__NR_getuid];
     original_connect = ((syscall_wrapper*)sys_call_table_addr)[__NR_connect];
-    if (!original_write)
+
+    // Check that saved original syscalls are valid
+    if (!original_write || !original_execve || !original_getuid || !original_connect
+        || !original_openat)
         return -1;
-    if (!original_execve)
-        return -1;
-    if (!original_getuid)
-        return -1;
-    if (!original_connect)
-        return -1;
+
+    // Replace the syscalls
+    ((syscall_wrapper*)sys_call_table_addr)[__NR_openat] = hooked_openat;
     ((syscall_wrapper*)sys_call_table_addr)[__NR_write] = hooked_write;
     ((syscall_wrapper*)sys_call_table_addr)[__NR_execve] = hooked_execve;
     ((syscall_wrapper*)sys_call_table_addr)[__NR_connect] = hooked_connect;
@@ -328,9 +368,11 @@ void reset_freezer_syscalls(void)
     printk(KERN_INFO SYSCALLSLOG "module has been unloaded\n");
 
     enable_page_rw((void*)sys_call_table_addr);
-    // TODO: refactor this
+
+    ((syscall_wrapper*)sys_call_table_addr)[__NR_openat] = original_openat;
     ((syscall_wrapper*)sys_call_table_addr)[__NR_write] = original_write;
     ((syscall_wrapper*)sys_call_table_addr)[__NR_execve] = original_execve;
     ((syscall_wrapper*)sys_call_table_addr)[__NR_connect] = original_connect;
+
     disable_page_rw((void*)sys_call_table_addr);
 }

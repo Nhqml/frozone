@@ -7,12 +7,12 @@ Vagrant.configure("2") do |config|
 
   config.vm.define :ubuntu do |ubuntu|
     ubuntu.vm.box = "generic/ubuntu2004"
-    ubuntu.vm.provision "shell", path: "vagrant_init_ubuntu.sh"
+    ubuntu.vm.provision "shell", path: "vagrant/vagrant_init_ubuntu.sh"
   end
 
   config.vm.define :debian do |debian|
     debian.vm.box = "generic/debian11"
-    debian.vm.provision "shell", path: "vagrant_init_debian.sh"
+    debian.vm.provision "shell", path: "vagrant/vagrant_init_debian.sh"
   end
 
   # Default disk size for vmware is 128GB

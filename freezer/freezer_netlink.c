@@ -56,7 +56,7 @@ static int __init freezer_init(void)
 {
     struct netlink_kernel_cfg cfg = { .input = freezer_recv_msg };
 
-    printk(KERN_INFO NETLINK_LOG "entering: %s\n", __FUNCTION__);
+    printk(KERN_INFO NETLINK_LOG "loading freezer module");
 
     nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, &cfg);
     if (!nl_sk)
@@ -70,7 +70,7 @@ static int __init freezer_init(void)
 
 static void __exit freezer_exit(void)
 {
-    printk(KERN_INFO "exiting hello module\n");
+    printk(KERN_INFO "exiting freezer module\n");
     reset_freezer_syscalls();
     netlink_kernel_release(nl_sk);
 }

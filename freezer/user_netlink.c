@@ -30,7 +30,7 @@ char* my_exact_copy(char *dest, char*src, size_t len)
 int send_message(int sock_fd, int resource, unsigned int uid, int is_lock)
 {
     printf("Sending message to kernel\n");
-        
+
     // allocate netlink message structure
     nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
     if (nlh == NULL)
