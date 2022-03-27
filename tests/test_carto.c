@@ -30,25 +30,27 @@ void test_get_users(void)
 
 void test_get_processes(void)
 {
-    pid_t** pids = get_processes();
+    process_t** processes = get_processes();
 
     // Should always return something
-    CU_ASSERT_PTR_NOT_NULL(pids);
+    CU_ASSERT_PTR_NOT_NULL(processes);
 
     // Should never return an empty array (since at least one process should be running)
-    CU_ASSERT_PTR_NOT_NULL(*pids);
+    CU_ASSERT_PTR_NOT_NULL(*processes);
 
     // Since PIDs are returned in ascending order, the first one should be PID 1 (init process)
-    CU_ASSERT_EQUAL(**pids, 1);
+    CU_ASSERT_EQUAL(processes[0]->pid, 1);
 
-    for (pid_t** pid = pids; *pid != NULL; ++pid)
+    for (process_t** process = processes; *process != NULL; ++process)
     {
         // No PID should be equal to 0
-        CU_ASSERT_NOT_EQUAL(**pid, 0);
-        free(*pid);
+        CU_ASSERT_NOT_EQUAL((*process)->pid, 0);
+        printf("%d: %s (cwd: %s, root: %s)\n", (*process)->pid, (*process)->exe_path, (*process)->cwd,
+               (*process)->root);
+        free(*process);
     }
 
-    free(pids);
+    free(processes);
 }
 
 void test_get_connections(void)

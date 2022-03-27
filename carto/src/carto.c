@@ -2,8 +2,8 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <unistd.h>
 
+#include "processes.h"
 #include "users.h"
 #include "utils.h"
 
@@ -34,12 +34,31 @@ utmp_t** get_users(void)
     return (utmp_t**)array_as_raw(a);
 }
 
-pid_t** get_processes(void)
+process_t** get_processes(void)
 {
     Array* pids = get_num_dir_contents("/proc");
-    array_push(pids, NULL);
 
-    return (pid_t**)array_as_raw(pids);
+    Array* processes = array_with_capacity(pids->size + 1);
+
+    for (size_t i = 0; i < pids->size; ++i)
+    {
+        process_t* process = xcalloc(1, sizeof(process_t));
+        process->pid = *(int*)pids->array[i];
+
+        process->exe_path = proc_readlink(process->pid, "exe");
+        process->cwd = proc_readlink(process->pid, "cwd");
+        process->root = proc_readlink(process->pid, "root");
+
+        process->cmdline = NULL;
+
+        array_push(processes, process);
+    }
+
+    array_push(processes, NULL);
+
+    array_destroy(pids);
+
+    return (process_t**)array_as_raw(processes);
 }
 
 void get_connections(void) {}
@@ -73,17 +92,10 @@ char** get_files(void)
             if (snprintf(proc_fd_path, PATH_MAX, "%s/%d", proc_pid_path, *(int*)fds->array[j]) == -1)
                 error(1, errno, "sprintf error");
 
-            char* file_name = xmalloc(PATH_MAX);
-            int ret = readlink(proc_fd_path, file_name, PATH_MAX);
+            char* file_name = readlink_str(proc_fd_path);
 
-            if (ret == -1)
-            {
-                free(file_name);
-                continue;
-            }
-
-            file_name[ret] = '\0';
-            array_push(a, file_name);
+            if (file_name != NULL)
+                array_push(a, file_name);
         }
 
         array_destroy(fds);

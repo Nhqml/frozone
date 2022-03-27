@@ -9,19 +9,27 @@
 
 typedef struct utmpx utmp_t;
 
+typedef struct
+{
+    pid_t pid;
+    char* exe_path;
+    char* cmdline;
+    char* cwd;
+    char* root;
+} process_t;
+
 /**
 ** \brief Return a NULL-terminated array of currently logged-in users
 **
 ** The caller is responsible for freeing the memory
 */
-__VISIBILITY__("default")
-utmp_t** get_users(void);
+__VISIBILITY__("default") utmp_t** get_users(void);
 
 /**
 ** \brief Return a NULL-terminated array of PIDs (running processes)
 */
 __VISIBILITY__("default")
-pid_t** get_processes(void);
+process_t** get_processes(void);
 // TODO(Valentin, Kenji): select what's interesting about processed that we want to provide, not only PIDs
 
 __VISIBILITY__("default")
