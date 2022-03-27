@@ -67,6 +67,10 @@ int run_command(char* command)
     }
 }
 
+/* ------------------------------------------------------ */
+/* ----- TEST FIXTURES ----- */
+/* ------------------------------------------------------ */
+
 int freezer_ts_init(void)
 {
     system("insmod " PATH_TO_MODULE);
@@ -80,6 +84,10 @@ int freezer_ts_clean(void)
     system("userdel " TEST_NAME);
     return 0;
 }
+
+/* ------------------------------------------------------ */
+/* ----- TEST FUNCTIONS ----- */
+/* ------------------------------------------------------ */
 
 void test_freeze_connections(void)
 {
@@ -102,9 +110,11 @@ void test_freeze_processes(void)
     // dummy test to check that creating new processes work normally
     CU_ASSERT_EQUAL(run_command(cmd), 0);
 
+    // freeze processes
     CU_ASSERT_EQUAL(freeze_processes_uid(TEST_UID), 0);
     CU_ASSERT_EQUAL(run_command(cmd), -1);
 
+    // unfreeze processes
     CU_ASSERT_EQUAL(unfreeze_processes_uid(TEST_UID), 0);
     CU_ASSERT_EQUAL(run_command(cmd), 0);
 }
