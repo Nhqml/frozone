@@ -11,9 +11,11 @@ project('frozone', 'c',
 includes = include_directories('carto/include')
 
 subdir('carto/src')
-subdir('freezer')
+subdir('freezer/lib')
+subdir('freezer/module')
 
 if get_option('buildtype').startswith('debug')
   subdir('tests')
   subdir('carto/src/tests/')
+  subdir('freezer/tests')
 endif
