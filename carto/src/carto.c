@@ -60,7 +60,7 @@ char** get_files(void)
     char proc_pid_path[PATH_MAX], proc_fd_path[PATH_MAX];
     for (size_t i = 0; i < pids->size; ++i)
     {
-        if (sprintf(proc_pid_path, "/proc/%d/fd", *(int*)pids->array[i]) == -1)
+        if (snprintf(proc_pid_path, PATH_MAX, "/proc/%d/fd", *(int*)pids->array[i]) == -1)
             error(1, errno, "sprintf error");
 
         Array* fds = get_num_dir_contents(proc_pid_path);
@@ -70,11 +70,8 @@ char** get_files(void)
 
         for (size_t j = 0; j < fds->size; ++j)
         {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-overflow"
-            if (sprintf(proc_fd_path, "%s/%d", proc_pid_path, *(int*)fds->array[j]) == -1)
+            if (snprintf(proc_fd_path, PATH_MAX, "%s/%d", proc_pid_path, *(int*)fds->array[j]) == -1)
                 error(1, errno, "sprintf error");
-#pragma GCC diagnostic pop
 
             char* file_name = xmalloc(PATH_MAX);
             int ret = readlink(proc_fd_path, file_name, PATH_MAX);
