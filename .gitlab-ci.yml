@@ -37,4 +37,4 @@ lint-carto-job:
     before_script:
         - pip install cpplint
     script:
-        - cpplint --recursive carto
+        - "cpplint --recursive --linelength=120 --filter=-build/include_subdir,-readability/casting,-whitespace/braces carto"
