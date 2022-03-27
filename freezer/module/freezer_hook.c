@@ -122,7 +122,8 @@ int hooked_execve(struct pt_regs* regs)
         printk(KERN_INFO SYSCALLSLOG "excve interrupted");
 
         // TODO: replace this line with `return 0;` to effectively interrupt the syscall
-        return (*original_execve)(regs);
+        // return (*original_execve)(regs);
+        return -1;
     }
     return (*original_execve)(regs);
 }

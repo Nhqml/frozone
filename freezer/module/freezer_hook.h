@@ -1,7 +1,7 @@
 #ifndef FREEZER_HOOK_H
 #define FREEZER_HOOK_H
 
-#include "resource_com.h"
+#include "../lib/resource_com.h"
 
 /**
  * freezer_call_wrapper - Wrapper for calls made in userland to freeze a resource for a user
