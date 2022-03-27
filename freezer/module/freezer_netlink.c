@@ -9,7 +9,7 @@
 #include <net/sock.h>
 
 #include "freezer_hook.h"
-#include "resource_com.h"
+#include "../lib/resource_com.h"
 
 #define NETLINK_USER 31
 #define NETLINK_LOG  "[freezer][netlink] "
