@@ -79,4 +79,8 @@ compile_commands.json
 doc/
 
 # Vagrant
+<<<<<<< HEAD
 .vagrant
+=======
+.vagrant
+>>>>>>> gitignore: add vagrant
