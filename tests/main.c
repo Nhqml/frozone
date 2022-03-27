@@ -16,7 +16,10 @@ int main()
         return CU_get_error();
     }
 
-    if (CU_add_test(carto_ts, "Fail", fail) == NULL)
+    if (CU_add_test(carto_ts, "get_users", test_get_users) == NULL
+        || CU_add_test(carto_ts, "get_processes", test_get_processes) == NULL
+        || CU_add_test(carto_ts, "get_connections", test_get_connections) == NULL
+        || CU_add_test(carto_ts, "get_files", test_get_files) == NULL)
     {
         CU_cleanup_registry();
         return CU_get_error();

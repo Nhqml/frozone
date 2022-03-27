@@ -41,6 +41,12 @@ meson test -C build -v
 meson test -C build -v --wrap='valgrind'
 ```
 
+or, for a more detailed output:
+
+```bash
+meson test -C build -v --wrap='valgrind --track-origins=yes --leak-check=full'
+```
+
 ### Build (release)
 
 ```bash

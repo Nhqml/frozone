@@ -103,8 +103,17 @@ Array* array_push(Array* a, void* element);
 /**
 ** \brief Destroy the array
 **
-** **Warning** This does **NOT** free the elements stored in the array! But this will free the whole array as well as
-** the struct
+** \warning This does **NOT** free the elements stored in the array! But this will free the whole array as
+*well as the struct
+**
+** \param a The array
+*/
+void array_free(Array* a);
+
+/**
+** \brief Destroy the array and what's inside
+**
+** \warning Make sure the pointers inside the array are allocated on the heap!
 **
 ** \param a The array
 */
@@ -122,9 +131,9 @@ void array_destroy(Array* a);
 void** array_as_raw(Array* a);
 
 /**
-** \brief Returns an array of integers representing pids or file descriptors
+** \brief Returns an array of pointers to integers (int*) representing PIDs or file descriptors
 **
-** \param dir_path String representing a path to a directory
-** \return int*
+** \param dir_path String representing a path to a directory (`/proc`, `/proc/<pid>/fd`)
+** \return int**
 */
-int* get_num_dir_contents(char* dir_path);
+Array* get_num_dir_contents(char* dir_path);

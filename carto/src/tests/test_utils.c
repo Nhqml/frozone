@@ -22,7 +22,7 @@ void test_array_new(void)
     CU_ASSERT_EQUAL(a->size, 0);
     CU_ASSERT_EQUAL(a->capacity, ARRAY_DEFAULT_CAPACITY);
 
-    array_destroy(a);
+    array_free(a);
 }
 
 void test_array_with_capacity(void)
@@ -33,7 +33,7 @@ void test_array_with_capacity(void)
     CU_ASSERT_EQUAL(a->size, 0);
     CU_ASSERT_EQUAL(a->capacity, 30);
 
-    array_destroy(a);
+    array_free(a);
 
     a = array_with_capacity(100);
 
@@ -41,7 +41,7 @@ void test_array_with_capacity(void)
     CU_ASSERT_EQUAL(a->size, 0);
     CU_ASSERT_EQUAL(a->capacity, 100);
 
-    array_destroy(a);
+    array_free(a);
 }
 
 void test_array_push(void)
@@ -55,5 +55,5 @@ void test_array_push(void)
     CU_ASSERT_EQUAL(a->size, 15);
     CU_ASSERT_EQUAL(a->capacity, 20);
 
-    array_destroy(a);
+    array_free(a);
 }

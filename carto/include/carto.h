@@ -10,19 +10,27 @@
 typedef struct utmpx utmp_t;
 
 /**
- * Return a NULL-terminated array of currently logged-in users
- *
- * The caller is responsible for freeing the memory
- */
+** \brief Return a NULL-terminated array of currently logged-in users
+**
+** The caller is responsible for freeing the memory
+*/
 __VISIBILITY__("default")
 utmp_t** get_users(void);
-// TODO: add parameter to filter user types
 
+/**
+** \brief Return a NULL-terminated array of PIDs (running processes)
+*/
 __VISIBILITY__("default")
 pid_t** get_processes(void);
+// TODO(Valentin, Kenji): select what's interesting about processed that we want to provide, not only PIDs
 
 __VISIBILITY__("default")
 void get_connections(void);
 
+/**
+** \brief Return a NULL-terminated array of paths (active file descriptors)
+**
+** The caller is responsible for freeing the memory
+*/
 __VISIBILITY__("default")
-void get_files(void);
+char** get_files(void);

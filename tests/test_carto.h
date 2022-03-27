@@ -3,4 +3,7 @@
 int carto_ts_init(void);
 int carto_ts_clean(void);
 
-void fail(void);
+void test_get_users(void);
+void test_get_processes(void);
+void test_get_connections(void);
+void test_get_files(void);

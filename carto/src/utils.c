@@ -1,6 +1,8 @@
 #include "utils.h"
 
+#include <dirent.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 Array* array_new(void)
 {
@@ -22,7 +24,7 @@ Array* array_push(Array* a, void* element)
     if (a->size == a->capacity)
     {
         a->capacity *= 2;
-        a->array = realloc(a->array, a->capacity * sizeof(void*));
+        a->array = xreallocarray(a->array, a->capacity, sizeof(void*));
     }
 
     a->array[a->size] = element;
@@ -31,8 +33,16 @@ Array* array_push(Array* a, void* element)
     return a;
 }
 
+void array_free(Array* a)
+{
+    free(a->array);
+    free(a);
+}
+
 void array_destroy(Array* a)
 {
+    for (size_t i = 0; i < a->size; ++i)
+        free(a->array[i]);
     free(a->array);
     free(a);
 }
@@ -45,31 +55,33 @@ void** array_as_raw(Array* a)
     return array;
 }
 
-int* get_num_dir_contents(char* dir_path)
+Array* get_num_dir_contents(char* dir_path)
 {
     DIR* dir = NULL;
     struct dirent* dir_cur = NULL;
 
     dir = opendir(dir_path);
-    
-    // log instead of error
+    // Could not open dir
     if (dir == NULL)
-        error(1, errno, "failed to open %s directory", dir_path);
-    
+        return NULL;
+
     Array* a = array_new();
 
     while ((dir_cur = readdir(dir)) != NULL)
     {
         int id = atoi(dir_cur->d_name);
 
-        // if pid is 0, atoi did not encounter a valid number
-        if (id)
-            array_push(a, id);
+        // If pid is 0, atoi did not encounter a valid PID, ote that we do not need to read `/proc/self` since it's a
+        // symlink to another directory
+        if (id != 0)
+        {
+            int* id_ptr = xmalloc(sizeof(int));
+            *id_ptr = id;
+            array_push(a, id_ptr);
+        }
     }
 
     closedir(dir);
 
-    array_push(a, NULL);
-
-    return (int*)array_as_raw(a);
+    return a;
 }
