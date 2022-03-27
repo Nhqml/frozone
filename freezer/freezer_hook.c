@@ -230,7 +230,7 @@ int add_uid_to_array(int* array, int *index, unsigned int uid)
     return 1;
 }
 
-int remove_uid_to_array(int *array, int *index, unsigned int uid)
+int remove_uid_from_array(int *array, int *index, unsigned int uid)
 {
     int cur = 0;
     int is_rm_index = 0; // false
@@ -292,7 +292,7 @@ int freezer_call_wrapper(struct netlink_cmd *data)
             break;
 
         case SESSIONS:
-            add_uid_to_array(sessions_uid_array, &current_sessions_index, data->uid); 
+            add_uid_to_array(sessions_uid_array, &current_sessions_index, data->uid);
             break;
 
         default:
@@ -304,19 +304,19 @@ int freezer_call_wrapper(struct netlink_cmd *data)
         switch (data->resource)
         {
         case FILE:
-            remove_uid_to_array(file_uid_array, &current_file_index, data->uid);
+            remove_uid_from_array(file_uid_array, &current_file_index, data->uid);
             break;
 
         case PROCESS:
-            remove_uid_to_array(process_uid_array, &current_process_index, data->uid);
+            remove_uid_from_array(process_uid_array, &current_process_index, data->uid);
             break;
 
         case NETWORK:
-            remove_uid_to_array(socket_uid_array, &current_socket_index, data->uid);
+            remove_uid_from_array(socket_uid_array, &current_socket_index, data->uid);
             break;
 
         case SESSIONS:
-            remove_uid_to_array(sessions_uid_array, &current_sessions_index, data->uid); 
+            remove_uid_from_array(sessions_uid_array, &current_sessions_index, data->uid);
             break;
 
         default:

@@ -48,7 +48,7 @@ int send_message(int sock_fd, int resource, unsigned int uid, int is_lock)
     // set data struct
     struct netlink_cmd data =
     {
-        .resource = resource, 
+        .resource = resource,
         .uid = uid,
         .is_lock = is_lock
     };
@@ -136,7 +136,6 @@ int receive_message(int sock_fd)
 int exit_socket(int sock_fd)
 {
     printf("Exiting socket\n");
-    
     if (nlh != NULL)
     {
         free(nlh);
