@@ -118,3 +118,16 @@ void test_freeze_processes(void)
     CU_ASSERT_EQUAL(unfreeze_processes_uid(TEST_UID), 0);
     CU_ASSERT_EQUAL(run_command(cmd), 0);
 }
+
+void test_freeze_open_files(void)
+{
+    char* cmd = "cat /etc/passwd";
+
+    CU_ASSERT_EQUAL(run_command(cmd), 0);
+
+    CU_ASSERT_EQUAL(freeze_files_uid(TEST_UID), 0);
+    CU_ASSERT_EQUAL(run_command(cmd), -1);
+
+    CU_ASSERT_EQUAL(unfreeze_files_uid(TEST_UID), 0);
+    CU_ASSERT_EQUAL(run_command(cmd), 0);
+}
