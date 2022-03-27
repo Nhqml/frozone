@@ -77,3 +77,6 @@ compile_commands.json
 
 # Doxygen
 doc/
+
+# Vagrant
+.vagrant
