@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 /*
- * Copyright (C) 2022 Kenji Gaillac, Michel San, Valentin Seux
+ * Copyright (C) 2022 Kenji Gaillac, Valentin Seux
  */
 
 #pragma once

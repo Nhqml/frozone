@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 /*
- * Copyright (C) 2022 Kenji Gaillac, Michel San, Styvell Pidoux
+ * Copyright (C) 2022 Michel San, Styvell Pidoux
  */
 
 #include "freezer_hook.h"
