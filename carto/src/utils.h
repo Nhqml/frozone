@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac, Michel San, Valentin Seux
+ */
+
 #pragma once
 
 #include <errno.h>

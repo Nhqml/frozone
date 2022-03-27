@@ -1,8 +1,12 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Styvell Pidoux
+ */
+
 #include <stdbool.h>
 #include <stdio.h>
 
 #include "user_netlink.h"
-#include "resource_com.h"
 
 int freeze_users(void)
 {

@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac, Valentin Seux
+ */
+
 #include "utils.h"
 
 #include <dirent.h>

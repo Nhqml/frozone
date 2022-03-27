@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Styvell Pidoux
+ */
+
 #ifndef FREEZER_USER_NETLINK_H
 #define FREEZER_USER_NETLINK_H
 

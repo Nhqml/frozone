@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac
+ */
+
 #include <CUnit/CUnit.h>
 #include <carto.h>
 #include <stdlib.h>

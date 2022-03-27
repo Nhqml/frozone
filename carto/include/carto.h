@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac, Valentin Seux
+ */
+
 #pragma once
 
 #define __UNUSED__        __attribute__((unused))
