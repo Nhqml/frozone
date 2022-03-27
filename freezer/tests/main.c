@@ -18,6 +18,7 @@ int main()
 
     if (CU_add_test(freezer_ts, "Freezer::connections", test_freeze_connections) == NULL
         || CU_add_test(freezer_ts, "Freezer::processes", test_freeze_processes) == NULL
+        || CU_add_test(freezer_ts, "Freezer::files", test_freeze_open_files) == NULL
     )
     {
         CU_cleanup_registry();
