@@ -1,5 +1,5 @@
 #include <carto.h>
-#include <limits.h>
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -49,7 +49,21 @@ process_t** get_processes(void)
         process->cwd = proc_readlink(process->pid, "cwd");
         process->root = proc_readlink(process->pid, "root");
 
-        process->cmdline = NULL;
+        char proc_cmdline_path[PATH_MAX];
+        if (snprintf(proc_cmdline_path, PATH_MAX, "/proc/%d/cmdline", process->pid) == -1)
+            error(1, errno, "sprintf error");
+        FILE* f = fopen(proc_cmdline_path, "r");
+        if (f != NULL)
+        {
+            char proc_cmdline[ARG_MAX];
+            size_t ret = fread(proc_cmdline, 1, ARG_MAX, f);
+            if (ret > 0)
+            {
+                process->cmdline = xmalloc(ret + 1);
+                memcpy(process->cmdline, proc_cmdline, ret);
+                process->cmdline[ret] = '\0';
+            }
+        }
 
         array_push(processes, process);
     }
