@@ -24,8 +24,7 @@ build-freezer-job:
     variables:
         KERNELDIR: /usr/lib/modules/5.4.0-104-generic/build # used to compile lkm on that specific version
     script:
-        - cd freezer
-        - make
+        - meson build && meson compile -C build
 
 ##### CARTO JOBS #####
 
