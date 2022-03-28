@@ -6,7 +6,7 @@
 #define _GNU_SOURCE
 
 #include <sys/types.h>
-#include <utmpx.h>
+#include <utmp.h>
 
 typedef struct utmpx utmp_t;
 
