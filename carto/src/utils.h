@@ -1,7 +1,7 @@
 #pragma once
 
 #include <errno.h>
-#include <error.h>
+#include <err.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -19,7 +19,7 @@ static inline void* xmalloc(size_t size)
 {
     void* ptr = malloc(size);
     if (ptr == NULL)
-        error(1, errno, "failed when trying to allocate %lu bytes of memory", size);
+        err(1, errno, "failed when trying to allocate %lu bytes of memory", size);
 
     return ptr;
 }
@@ -36,7 +36,7 @@ static inline void* xcalloc(size_t nmemb, size_t size)
 {
     void* ptr = calloc(nmemb, size);
     if (ptr == NULL)
-        error(1, errno, "failed when trying to allocate %lu bytes of memory", size * nmemb);
+        err(1, errno, "failed when trying to allocate %lu bytes of memory", size * nmemb);
 
     return ptr;
 }
@@ -53,7 +53,7 @@ static inline void* xreallocarray(void* ptr, size_t nmemb, size_t size)
 {
     void* new_ptr = reallocarray(ptr, nmemb, size);
     if (ptr == NULL)
-        error(1, errno, "failed when trying to allocate %lu bytes of memory", size * nmemb);
+        err(1, errno, "failed when trying to allocate %lu bytes of memory", size * nmemb);
 
     return new_ptr;
 }
@@ -69,7 +69,7 @@ static inline void* xstrdup(const char* str)
 {
     void* dup_str = strdup(str);
     if (dup_str == NULL)
-        error(1, errno, "failed to duplicate string");
+        err(1, errno, "failed to duplicate string");
 
     return dup_str;
 }
