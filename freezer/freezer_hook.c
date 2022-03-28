@@ -275,7 +275,7 @@ int remove_uid_from_array(int *array, int *index, unsigned int uid)
 int freezer_call_wrapper(struct netlink_cmd *data)
 {
     printk("freezer wrapper called");
-    if (data->is_lock == LOCK)
+    if (data->action == LOCK)
     {
         switch (data->resource)
         {
@@ -299,7 +299,7 @@ int freezer_call_wrapper(struct netlink_cmd *data)
             return -1;
         }
     }
-    else if (data->is_lock == UNLOCK)
+    else if (data->action == UNLOCK)
     {
         switch (data->resource)
         {
