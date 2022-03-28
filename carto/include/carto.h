@@ -17,6 +17,7 @@ typedef struct
     char* cwd;
     char* root;
 } process_t;
+// TODO(Kenji): add UID/GID of process, exec time
 
 /**
 ** \brief Return a NULL-terminated array of currently logged-in users
@@ -30,7 +31,6 @@ __VISIBILITY__("default") utmp_t** get_users(void);
 */
 __VISIBILITY__("default")
 process_t** get_processes(void);
-// TODO(Valentin, Kenji): select what's interesting about processed that we want to provide, not only PIDs
 
 __VISIBILITY__("default")
 void get_connections(void);
@@ -42,3 +42,4 @@ void get_connections(void);
 */
 __VISIBILITY__("default")
 char** get_files(void);
+// TODO(Kenji): keep track of PID and files infos (UID/GID, mode, size, timestamps, link count)

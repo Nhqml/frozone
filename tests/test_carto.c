@@ -45,8 +45,11 @@ void test_get_processes(void)
     {
         // No PID should be equal to 0
         CU_ASSERT_NOT_EQUAL((*process)->pid, 0);
-        printf("%d: %s (%s) | cwd: %s, root: %s\n", (*process)->pid, (*process)->exe_path, (*process)->cmdline,
-               (*process)->cwd, (*process)->root);
+
+        free((*process)->exe_path);
+        free((*process)->cmdline);
+        free((*process)->cwd);
+        free((*process)->root);
         free(*process);
     }
 

@@ -63,6 +63,7 @@ process_t** get_processes(void)
                 memcpy(process->cmdline, proc_cmdline, ret);
                 process->cmdline[ret] = '\0';
             }
+            fclose(f);
         }
 
         array_push(processes, process);
