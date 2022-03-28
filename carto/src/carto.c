@@ -7,7 +7,6 @@
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -97,7 +96,7 @@ process_t** get_processes(void)
 
 void get_connections(void) {}
 
-char** get_files(void)
+file_t** get_files(void)
 {
     Array* a = array_new();
 
@@ -113,7 +112,8 @@ char** get_files(void)
     char proc_pid_path[PATH_MAX], proc_fd_path[PATH_MAX];
     for (size_t i = 0; i < pids->size; ++i)
     {
-        if (snprintf(proc_pid_path, PATH_MAX, "/proc/%d/fd", *(int*)pids->array[i]) == -1)
+        pid_t cur_pid = *(int*)pids->array[i];
+        if (snprintf(proc_pid_path, PATH_MAX, "/proc/%d/fd", cur_pid) == -1)
             error(1, errno, "sprintf error");
 
         Array* fds = get_num_dir_contents(proc_pid_path);
@@ -127,9 +127,18 @@ char** get_files(void)
                 error(1, errno, "sprintf error");
 
             char* file_name = readlink_str(proc_fd_path);
-
             if (file_name != NULL)
-                array_push(a, file_name);
+            {
+                file_t* file = xcalloc(1, sizeof(file_t));
+                file->path = file_name;
+                file->pid = cur_pid;
+
+                struct stat file_stat;
+                if (stat(proc_fd_path, &file_stat) == 0)
+                    file->file_stat = file_stat;
+
+                array_push(a, file);
+            }
         }
 
         array_destroy(fds);
@@ -139,5 +148,5 @@ char** get_files(void)
 
     array_push(a, NULL);
 
-    return (char**)array_as_raw(a);
+    return (file_t**)array_as_raw(a);
 }

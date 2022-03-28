@@ -10,6 +10,7 @@
 
 #define _GNU_SOURCE
 
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <utmpx.h>
 
@@ -26,6 +27,13 @@ typedef struct
     gid_t gid;      // GID
     time_t etime;   // Elasped time
 } process_t;
+
+typedef struct
+{
+    pid_t pid;
+    char* path;
+    struct stat file_stat;
+} file_t;
 
 /**
 ** \brief Return a NULL-terminated array of currently logged-in users
@@ -49,5 +57,4 @@ void get_connections(void);
 ** The caller is responsible for freeing the memory
 */
 __VISIBILITY__("default")
-char** get_files(void);
-// TODO(Kenji): keep track of PID and files infos (UID/GID, mode, size, timestamps, link count)
+file_t** get_files(void);
