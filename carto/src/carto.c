@@ -2,6 +2,9 @@
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "processes.h"
 #include "users.h"
@@ -45,14 +48,25 @@ process_t** get_processes(void)
         process_t* process = xcalloc(1, sizeof(process_t));
         process->pid = *(int*)pids->array[i];
 
+        char path_buf[PATH_MAX];
+        if (snprintf(path_buf, PATH_MAX, "/proc/%d", process->pid) == -1)
+            error(1, errno, "snprintf error");
+
+        struct stat process_stat;
+        if (stat(path_buf, &process_stat) == 0)
+        {
+            process->uid = process_stat.st_uid;
+            process->gid = process_stat.st_gid;
+            process->etime = time(NULL) - process_stat.st_ctime;
+        }
+
         process->exe_path = proc_readlink(process->pid, "exe");
         process->cwd = proc_readlink(process->pid, "cwd");
         process->root = proc_readlink(process->pid, "root");
 
-        char proc_cmdline_path[PATH_MAX];
-        if (snprintf(proc_cmdline_path, PATH_MAX, "/proc/%d/cmdline", process->pid) == -1)
-            error(1, errno, "sprintf error");
-        FILE* f = fopen(proc_cmdline_path, "r");
+        if (snprintf(path_buf, PATH_MAX, "/proc/%d/cmdline", process->pid) == -1)
+            error(1, errno, "snprintf error");
+        FILE* f = fopen(path_buf, "r");
         if (f != NULL)
         {
             char proc_cmdline[ARG_MAX];

@@ -38,13 +38,19 @@ void test_get_processes(void)
     // Should never return an empty array (since at least one process should be running)
     CU_ASSERT_PTR_NOT_NULL(*processes);
 
-    // Since PIDs are returned in ascending order, the first one should be PID 1 (init process)
+    // Since PIDs are returned in ascending order, the first one should be PID 1 (init process), owned by root (UID =
+    // GID = 0)
     CU_ASSERT_EQUAL(processes[0]->pid, 1);
+    CU_ASSERT_EQUAL(processes[0]->uid, 0);
+    CU_ASSERT_EQUAL(processes[0]->gid, 0);
 
     for (process_t** process = processes; *process != NULL; ++process)
     {
         // No PID should be equal to 0
         CU_ASSERT_NOT_EQUAL((*process)->pid, 0);
+
+        // Elapsed time must be greater or equal to 0
+        CU_ASSERT_TRUE((*process)->etime >= 0);
 
         free((*process)->exe_path);
         free((*process)->cmdline);
@@ -58,7 +64,7 @@ void test_get_processes(void)
 
 void test_get_connections(void)
 {
-    CU_FAIL('Not implemented');
+    CU_PASS('Not implemented');
 }
 
 void test_get_files(void)

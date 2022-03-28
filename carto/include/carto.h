@@ -5,19 +5,22 @@
 
 #define _GNU_SOURCE
 
+#include <sys/types.h>
 #include <utmpx.h>
 
 typedef struct utmpx utmp_t;
 
 typedef struct
 {
-    pid_t pid;
-    char* exe_path;
-    char* cmdline;
-    char* cwd;
-    char* root;
+    pid_t pid;      // PID
+    char* exe_path; // Executable path
+    char* cmdline;  // Command line
+    char* cwd;      // Current Working Directory
+    char* root;     // Filesystem root for this process
+    uid_t uid;      // UID
+    gid_t gid;      // GID
+    time_t etime;   // Elasped time
 } process_t;
-// TODO(Kenji): add UID/GID of process, exec time
 
 /**
 ** \brief Return a NULL-terminated array of currently logged-in users
