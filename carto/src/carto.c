@@ -1,5 +1,5 @@
 #include <carto.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/stat.h>
