@@ -162,5 +162,3 @@ void test_freeze_open_to_blocked_user(void)
     CU_ASSERT_EQUAL(unfreeze_users_uid(BLOCKED_USERNAME_UID), 0);
     CU_ASSERT_EQUAL(run_command(cmd, BLOCKED_USERNAME_UID, TEST_GID), 0);
 }
-
-// TODO: test for write block
