@@ -27,7 +27,7 @@ char* my_exact_copy(char *dest, char*src, size_t len)
     return dest;
 }
 
-int send_message(int sock_fd, int resource, unsigned int uid, int is_lock)
+int send_message(int sock_fd, int resource, unsigned int uid, int action, char* resource_data)
 {
     printf("Sending message to kernel\n");
 
@@ -50,7 +50,8 @@ int send_message(int sock_fd, int resource, unsigned int uid, int is_lock)
     {
         .resource = resource,
         .uid = uid,
-        .is_lock = is_lock
+        .action = action,
+        .resource_data = resource_data
     };
 
     // add message to the netlink message strcuture
@@ -145,7 +146,7 @@ int exit_socket(int sock_fd)
     return close(sock_fd);
 }
 
-int send_socket_msg(int resource, unsigned int uid, int is_lock)
+int send_socket_msg(int resource, unsigned int uid, int action, char* resource_data)
 {
     int sock_fd = init_socket();
     if (sock_fd < 0)
@@ -153,7 +154,7 @@ int send_socket_msg(int resource, unsigned int uid, int is_lock)
         return -1;
     }
 
-    int bytes_send = send_message(sock_fd, resource, uid, is_lock);
+    int bytes_send = send_message(sock_fd, resource, uid, action, resource_data);
     if (bytes_send < 0)
     {
         exit_socket(sock_fd);
@@ -170,7 +171,7 @@ int send_socket_msg(int resource, unsigned int uid, int is_lock)
     return exit_socket(sock_fd);
 }
 
-int send_socket_msg_except_uid(int resource, unsigned int uid, int is_lock)
+int send_socket_msg_except_uid(int resource, unsigned int uid, int action, char* resource_data)
 {
     struct passwd *p;
     struct utmpx* entry;
@@ -190,7 +191,7 @@ int send_socket_msg_except_uid(int resource, unsigned int uid, int is_lock)
 
             if (p->pw_uid != uid)
             {
-                res = send_socket_msg(resource, p->pw_uid, is_lock);
+                res = send_socket_msg(resource, p->pw_uid, action, resource_data);
                 if (res < 0)
                 {
                     endutxent();

@@ -1,4 +1,5 @@
 #include "freezer_hook.h"
+#include "resource_com.h"
 
 #include <asm/ptrace.h>
 #include <linux/errno.h>
@@ -31,6 +32,9 @@ int socket_uid_array[MAX_SIZE_ARRAY];
 int current_socket_index = 0;
 int sessions_uid_array[MAX_SIZE_ARRAY];
 int current_sessions_index = 0;
+
+// struct array_uid whitelist_network[MAX_SIZE_ARRAY];
+// int current_whitelist_network_index = 0;
 
 
 int uid_is_in_array(int *array, int uid)
@@ -213,6 +217,7 @@ int add_uid_to_array(int* array, int *index, unsigned int uid)
 {
     int cur = 0;
     if (*index >= MAX_SIZE_ARRAY)
+        return 0;
 
     while (cur < *index)
     {
@@ -236,9 +241,7 @@ int remove_uid_from_array(int *array, int *index, unsigned int uid)
     int is_rm_index = 0; // false
 
     if (*index >= MAX_SIZE_ARRAY)
-    {
-        return 0; // datalab
-    }
+        return 0;
 
     while (cur < *index)
     {
@@ -252,9 +255,7 @@ int remove_uid_from_array(int *array, int *index, unsigned int uid)
     }
 
     if (is_rm_index == 0)
-    {
         return 0;
-    }
 
     (*index)--;
 
@@ -272,10 +273,41 @@ int remove_uid_from_array(int *array, int *index, unsigned int uid)
     return 1;
 }
 
+int add_to_whitelist(struct array_uid *array, int *index, char *resource_data, unsigned int uid)
+{
+    // int cur = 0;
+
+    // if (*index >= MAX_SIZE_ARRAY)
+    //     return 0;
+
+    // while (cur < *index)
+    // {
+    //     if (array[cur].uid == uid)
+    //     {
+    //         array_push(array[cur].array, resource_data);
+    //         return 1;
+    //     }
+
+    //     cur++;
+    // }
+
+    // struct array_uid new_array_uid =
+    // {
+    //     .uid = uid,
+    //     .array = array_new()
+    // };
+    // array_push(new_array_uid.array, resource_data); 
+
+    // array[*index] = new_array_uid;
+    // *index = *index + 1;
+
+    return 1;
+}
+
 int freezer_call_wrapper(struct netlink_cmd *data)
 {
     printk("freezer wrapper called");
-    if (data->is_lock == LOCK)
+    if (data->action == LOCK)
     {
         switch (data->resource)
         {
@@ -299,7 +331,7 @@ int freezer_call_wrapper(struct netlink_cmd *data)
             return -1;
         }
     }
-    else if (data->is_lock == UNLOCK)
+    else if (data->action == UNLOCK)
     {
         switch (data->resource)
         {
@@ -323,6 +355,30 @@ int freezer_call_wrapper(struct netlink_cmd *data)
             return -1;
         }
     }
+    // else if (data->action == WHITELIST)
+    // {
+    //     switch (data->resource)
+    //     {
+    //     case FILE:
+    //         //add_to_whitelist(file_uid_array, data->resource_data, data->uid);
+    //         break;
+
+    //     case PROCESS:
+    //         //add_to_whitelist(process_uid_array, data->resource_data, data->uid);
+    //         break;
+
+    //     case NETWORK:
+    //         add_to_whitelist(whitelist_network, &current_whitelist_network_index, data->resource_data, data->uid);
+    //         break;
+
+    //     case SESSIONS:
+    //         //add_to_whitelist(sessions_uid_array, data->resource_data, data->uid);
+    //         break;
+
+    //     default:
+    //         return -1;
+    //     }
+    // }
     else
     {
         return -1;

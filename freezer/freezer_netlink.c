@@ -4,7 +4,6 @@
 #include <net/sock.h>
 
 #include "freezer_hook.h"
-#include "resource_com.h"
 
 #define NETLINK_USER 31
 #define NETLINK_LOG  "[freezer][netlink] "
@@ -26,7 +25,8 @@ static void freezer_recv_msg(struct sk_buff* skb)
     data = (struct netlink_cmd*)nlmsg_data(nlh);
     printk(KERN_INFO NETLINK_LOG "resource: %d\n", data->resource);
     printk(KERN_INFO NETLINK_LOG "uid: %d\n", data->uid);
-    printk(KERN_INFO NETLINK_LOG "is_lock: %d\n", data->is_lock);
+    printk(KERN_INFO NETLINK_LOG "action: %d\n", data->action);
+    printk(KERN_INFO NETLINK_LOG "resource_data: %s\n", data->resource_data);
     pid = nlh->nlmsg_pid; /*pid of sending process */
 
     // process the payload

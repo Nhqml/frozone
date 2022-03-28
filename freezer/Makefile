@@ -16,4 +16,4 @@ clean:
 .PHONY: all modules clean
 
 obj-m := freezer_module.o
-freezer_module-objs := freezer_hook.o freezer_netlink.o
+freezer_module-objs := freezer_hook.o freezer_netlink.o array.o
