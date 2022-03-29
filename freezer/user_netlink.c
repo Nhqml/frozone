@@ -1,4 +1,4 @@
-#include <linux/netlink.h>
+#include <netlink.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
