@@ -75,7 +75,7 @@ process_t** get_processes(void)
         process->root = proc_readlink(process->pid, "root");
 
         if (snprintf(path_buf, PATH_MAX, "/proc/%d/cmdline", process->pid) == -1)
-            error(1, errno, "snprintf error");
+            errc(1, errno, "snprintf error");
         FILE* f = fopen(path_buf, "r");
         if (f != NULL)
         {
@@ -129,7 +129,7 @@ char** get_files(void)
         for (size_t j = 0; j < fds->size; ++j)
         {
             if (snprintf(proc_fd_path, PATH_MAX, "%s/%d", proc_pid_path, *(int*)fds->array[j]) == -1)
-                error(1, errno, "sprintf error");
+                errc(1, errno, "sprintf error");
 
             char* file_name = readlink_str(proc_fd_path);
 
