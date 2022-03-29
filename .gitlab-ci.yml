@@ -27,6 +27,13 @@ build-freezer-job:
     script:
         - meson build && meson compile -C build
 
+test-freezer-job:
+    stage: test
+    image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
+    script:
+        - meson build && meson compile -C build
+        - ./build/freezer/tests/cunit_tests_freezer
+
 ##### CARTO JOBS #####
 
 # This job will just lint the code, not blocking.
