@@ -10,14 +10,9 @@ mkfile = custom_target(
     build_by_default: true
 )
 
-# Define kernel_version, changes if it's a gitlab job
-is_gitlab_job = run_command('env').stdout().contains('IS_GITLAB_JOB=1')
+meson_get_kversion_sh = find_program('meson_get_kversion.sh', dirs:meson.current_build_dir())
 
-if is_gitlab_job
-    kernel_version = run_command('echo','$KERNELDIR').stdout().strip()
-else
-    kernel_version = run_command('uname', '-r').stdout().strip()
-endif
+kernel_version = run_command(meson_get_kversion_sh).stdout().strip()
 
 kernel_dir = '/lib/modules/' + kernel_version + '/build/'
 
