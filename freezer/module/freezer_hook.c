@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Michel San, Styvell Pidoux
+ */
+
 #include "freezer_hook.h"
 #include "resource_com.h"
 
@@ -169,7 +174,8 @@ int hooked_execve(struct pt_regs* regs)
         printk(KERN_INFO SYSCALLSLOG "excve interrupted");
 
         // TODO: replace this line with `return 0;` to effectively interrupt the syscall
-        return (*original_execve)(regs);
+        // return (*original_execve)(regs);
+        return -1;
     }
     return (*original_execve)(regs);
 }
@@ -229,7 +235,7 @@ int hooked_write(struct pt_regs* regs)
 {
     if (is_hooked_user(file_uid_array, current_file_index))
     {
-        printk(KERN_INFO SYSCALLSLOG "write not interrupted");
+        printk(KERN_INFO SYSCALLSLOG "write interrupted\n");
 
         // TODO: replace this line with `return 0;` to effectively interrupt the syscall
         return (*original_write)(regs);
@@ -250,7 +256,7 @@ int hooked_openat(struct pt_regs* regs)
         {
             if (strncmp(opened_file, passwd_file, NAME_MAX) == 0)
             {
-                printk(KERN_INFO SYSCALLSLOG "openat interrupted");
+                printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
                 return EACCES;
             }
         }
@@ -259,7 +265,7 @@ int hooked_openat(struct pt_regs* regs)
     // block opening of files for blocked users
     if (is_hooked_user(file_uid_array, current_file_index))
     {
-        printk(KERN_INFO SYSCALLSLOG "openat interrupted");
+        printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
         return EACCES;
     }
 
@@ -283,7 +289,8 @@ int add_uid_to_array(int* array, int *index, unsigned int uid)
     // uid not already in array, so add uid
     array[*index] = uid;
     *index = *index + 1;
-    printk(KERN_INFO SYSCALLSLOG "Uid %d was added to array", uid);
+    // TODO: remove in production
+    printk(KERN_INFO SYSCALLSLOG "Uid %d was added to array\n", uid);
 
     return 1;
 }
@@ -318,7 +325,8 @@ int remove_uid_from_array(int *array, int *index, unsigned int uid)
         cur++;
     }
 
-    printk(KERN_INFO SYSCALLSLOG "Uid %d was removed from array", uid);
+    printk(KERN_INFO SYSCALLSLOG "Uid %d was removed from array\n", uid);
+    // TODO: remove these printk in production
     printk(KERN_INFO SYSCALLSLOG "array[0] = %d", array[0]);
     printk(KERN_INFO SYSCALLSLOG "array[1] = %d", array[1]);
     printk(KERN_INFO SYSCALLSLOG "index = %d", *index);

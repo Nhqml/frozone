@@ -22,10 +22,17 @@ build-freezer-job:
     stage: build
     image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
     variables:
-        KERNELDIR: /usr/lib/modules/5.4.0-104-generic/build # used to compile lkm on that specific version
+        KERNEL_VERSION: 5.4.0-104-generic # used to compile lkm on that specific version
+        IS_GITLAB_JOB: 1
     script:
-        - cd freezer
-        - make
+        - meson build && meson compile -C build
+
+test-freezer-job:
+    stage: test
+    image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
+    script:
+        - echo "Tests are only local, cannot run tests from the docker containers"
+        - echo true
 
 ##### CARTO JOBS #####
 
@@ -37,4 +44,4 @@ lint-carto-job:
     before_script:
         - pip install cpplint
     script:
-        - cpplint --recursive carto
+        - "cpplint --recursive --linelength=120 --filter=-build/include_subdir,-readability/casting,-whitespace/braces carto"

@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <carto.h>
+#include <sys/types.h>
 
-utmp_t* clone_utmp(utmp_t* utmp);
-
-void free_users(utmp_t** users);
+char* proc_readlink(pid_t pid, const char* attribute);

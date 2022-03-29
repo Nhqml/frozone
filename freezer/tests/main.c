@@ -1,30 +1,26 @@
-/* SPDX-License-Identifier: MIT */
-/*
- * Copyright (C) 2022 Kenji Gaillac
- */
-
 #include <CUnit/Basic.h>
 #include <CUnit/CUnit.h>
 
-#include "test_carto.h"
+#include "test_freezer.h"
 
 int main()
 {
     if (CU_initialize_registry() != CUE_SUCCESS)
         return CU_get_error();
 
-    /* "carto" Tests Suite */
-    CU_pSuite carto_ts = CU_add_suite("Carto", carto_ts_init, carto_ts_clean);
-    if (NULL == carto_ts)
+    /* "Freezer E2E" Tests Suite */
+    CU_pSuite freezer_ts = CU_add_suite("Freezer", freezer_ts_init, freezer_ts_clean);
+    if (NULL == freezer_ts)
     {
         CU_cleanup_registry();
         return CU_get_error();
     }
 
-    if (CU_add_test(carto_ts, "get_users", test_get_users) == NULL
-        || CU_add_test(carto_ts, "get_processes", test_get_processes) == NULL
-        || CU_add_test(carto_ts, "get_connections", test_get_connections) == NULL
-        || CU_add_test(carto_ts, "get_files", test_get_files) == NULL)
+    if (CU_add_test(freezer_ts, "Freezer::connections", test_freeze_connections) == NULL
+        || CU_add_test(freezer_ts, "Freezer::processes", test_freeze_processes) == NULL
+        || CU_add_test(freezer_ts, "Freezer::files", test_freeze_open_files) == NULL
+        || CU_add_test(freezer_ts, "Freezer::sessions", test_freeze_open_to_blocked_user) == NULL
+    )
     {
         CU_cleanup_registry();
         return CU_get_error();

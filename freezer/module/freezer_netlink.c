@@ -1,9 +1,15 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Michel San, Styvell Pidoux
+ */
+
 #include <linux/module.h>
 #include <linux/netlink.h>
 #include <linux/skbuff.h>
 #include <net/sock.h>
 
 #include "freezer_hook.h"
+#include "../lib/resource_com.h"
 
 #define NETLINK_USER 31
 #define NETLINK_LOG  "[freezer][netlink] "

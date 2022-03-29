@@ -1,10 +1,17 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac, Valentin Seux
+ */
+
 #pragma once
 
 #include <errno.h>
 #include <error.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define ARRAY_DEFAULT_CAPACITY 10
 
@@ -27,6 +34,8 @@ static inline void* xmalloc(size_t size)
 **
 ** \param nmemb Number of elements to allocate
 ** \param size Size of a single element
+**
+** \return void*
 */
 static inline void* xcalloc(size_t nmemb, size_t size)
 {
@@ -42,6 +51,8 @@ static inline void* xcalloc(size_t nmemb, size_t size)
 **
 ** \param nmemb Number of elements to allocate
 ** \param size Size of a single element
+**
+** \return void*
 */
 static inline void* xreallocarray(void* ptr, size_t nmemb, size_t size)
 {
@@ -56,6 +67,8 @@ static inline void* xreallocarray(void* ptr, size_t nmemb, size_t size)
 ** \brief Safe strdup wrapper
 **
 ** \param str String to copy
+**
+** \return void*
 */
 static inline void* xstrdup(const char* str)
 {
@@ -64,6 +77,30 @@ static inline void* xstrdup(const char* str)
         error(1, errno, "failed to duplicate string");
 
     return dup_str;
+}
+
+/**
+** \brief Call readlink and returns the resolved path (or NULL if a failure occurred)
+**
+** \param path The path
+**
+** \return char*
+*/
+static inline char* readlink_str(const char* path)
+{
+    char* s = xmalloc(PATH_MAX);
+
+    int ret = readlink(path, s, PATH_MAX);
+
+    if (ret == -1)
+    {
+        free(s);
+        return NULL;
+    }
+
+    s[ret] = '\0';
+
+    return s;
 }
 
 /**

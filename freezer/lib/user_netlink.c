@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Michel San, Styvell Pidoux
+ */
+
 #include <linux/netlink.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -2,6 +2,7 @@ sources = files([
   'carto.c',
   'utils.c',
   'users.c',
+  'processes.c',
 ])
 
 carto_lib = both_libraries(

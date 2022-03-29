@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac, Valentin Seux
+ */
+
 #pragma once
 
 #define __UNUSED__        __attribute__((unused))
@@ -5,24 +10,43 @@
 
 #define _GNU_SOURCE
 
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <utmpx.h>
 
 typedef struct utmpx utmp_t;
+
+typedef struct
+{
+    pid_t pid;      // PID
+    char* exe_path; // Executable path
+    char* cmdline;  // Command line
+    char* cwd;      // Current Working Directory
+    char* root;     // Filesystem root for this process
+    uid_t uid;      // UID
+    gid_t gid;      // GID
+    time_t etime;   // Elasped time
+} process_t;
+
+typedef struct
+{
+    pid_t pid;
+    char* path;
+    struct stat file_stat;
+} file_t;
 
 /**
 ** \brief Return a NULL-terminated array of currently logged-in users
 **
 ** The caller is responsible for freeing the memory
 */
-__VISIBILITY__("default")
-utmp_t** get_users(void);
+__VISIBILITY__("default") utmp_t** get_users(void);
 
 /**
 ** \brief Return a NULL-terminated array of PIDs (running processes)
 */
 __VISIBILITY__("default")
-pid_t** get_processes(void);
-// TODO(Valentin, Kenji): select what's interesting about processed that we want to provide, not only PIDs
+process_t** get_processes(void);
 
 __VISIBILITY__("default")
 void get_connections(void);
@@ -33,4 +57,4 @@ void get_connections(void);
 ** The caller is responsible for freeing the memory
 */
 __VISIBILITY__("default")
-char** get_files(void);
+file_t** get_files(void);

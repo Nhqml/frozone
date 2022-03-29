@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac
+ */
+
 #include "test_utils.h"
 
 #include <CUnit/Basic.h>
