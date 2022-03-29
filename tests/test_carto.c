@@ -72,17 +72,6 @@ void test_get_connections(void)
     CU_PASS('Not implemented');
 }
 
-void strmode(mode_t mode, char* buf)
-{
-    static const char chars[] = "rwxrwxrwx";
-
-    for (size_t i = 0; i < 9; i++)
-    {
-        buf[i] = (mode & (1 << (8 - i))) ? chars[i] : '-';
-    }
-    buf[9] = '\0';
-}
-
 void test_get_files(void)
 {
     file_t** files = get_files();
@@ -98,15 +87,6 @@ void test_get_files(void)
         // No missing or empty file path
         CU_ASSERT_PTR_NOT_NULL((*file)->path);
         CU_ASSERT_NOT_EQUAL(((*file)->path)[0], '\0');
-
-        // char buf[10];
-
-        // printf("%d: %s\n", (*file)->pid, (*file)->path);
-        // printf("Link count: %lu\n", (*file)->file_stat.st_nlink);
-        // strmode((*file)->file_stat.st_mode, buf);
-        // printf("Mode: %04o (%s)\n", (*file)->file_stat.st_mode, buf);
-        // printf("UID: %u\n", (*file)->file_stat.st_uid);
-        // printf("GID: %u\n", (*file)->file_stat.st_gid);
 
         free((*file)->path);
         free(*file);
