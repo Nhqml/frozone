@@ -23,6 +23,7 @@ build-freezer-job:
     image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
     variables:
         KERNELDIR: /usr/lib/modules/5.4.0-104-generic/build # used to compile lkm on that specific version
+        IS_GITLAB_JOB: 1
     script:
         - meson build && meson compile -C build
 
