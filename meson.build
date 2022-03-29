@@ -12,6 +12,7 @@ includes = include_directories('carto/include')
 
 subdir('carto/src')
 subdir('freezer')
+subdir('examples')
 
 if get_option('buildtype').startswith('debug')
   subdir('tests')
