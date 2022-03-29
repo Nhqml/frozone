@@ -36,13 +36,13 @@ utmp_t** get_users(void)
 
     Array* a = array_new();
 
-    puts("1");
+    puts("Before");
     while (fread((char*)&utmp, sizeof(utmp), 1, stdin) == 1)
     {
         utmp_t* cloned_utmp = clone_utmp(&utmp);
         array_push(a, cloned_utmp);
     }
-    puts("2");
+    puts("After");
 
     array_push(a, NULL);
 
