@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "resource_com.h"
 #include "user_netlink.h"
 
 int freeze_users(void)
