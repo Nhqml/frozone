@@ -16,8 +16,6 @@ lint-freezer-job:
     script:
         - cpplint freezer/*.c freezer/*.h
 
-# This job will run make on the freezer folder.
-# BLOCKING if make fails
 build-freezer-job:
     stage: build
     image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
@@ -45,3 +43,13 @@ lint-carto-job:
         - pip install cpplint
     script:
         - "cpplint --recursive --linelength=120 --filter=-build/include_subdir,-readability/casting,-whitespace/braces carto"
+
+test-carto-job:
+    stage: test
+    image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
+    variables:
+        KERNEL_VERSION: 5.4.0-104-generic # used to compile lkm on that specific version
+        IS_GITLAB_JOB: 1
+    script:
+        - meson build && meson compile -C build
+        - ./build/carto/src/tests/cunit_tests_private
