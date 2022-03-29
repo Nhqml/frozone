@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include <stdlio.h>
+
 Array* array_new(void)
 {
     return array_with_capacity(ARRAY_DEFAULT_CAPACITY);
