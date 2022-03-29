@@ -19,7 +19,6 @@ struct netlink_cmd
     int resource;   // resource to block
     unsigned int uid;        // user id to block
     int action;    // block or unblock the resource
-    char *resource_data;    // resource to add to the whitelist
 };
 
 struct array_uid

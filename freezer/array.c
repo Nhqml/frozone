@@ -1,61 +1,60 @@
-// #include "array.h"
+#include "array.h"
 
-// #include <linux/slab.h>
+#include <linux/slab.h>
 
-// Array* array_new(void)
-// {
-//     return array_with_capacity(ARRAY_DEFAULT_CAPACITY);
-// }
+Array* array_new(void)
+{
+    return array_with_capacity(ARRAY_DEFAULT_CAPACITY);
+}
 
-// Array* array_with_capacity(unsigned int capacity)
-// {
-//     // Array* a = kmalloc(sizeof(Array), GFP_KERNEL);
+Array* array_with_capacity(unsigned int capacity)
+{
+    Array* a = kmalloc(sizeof(Array), GFP_KERNEL);
 
-//     // if (a == NULL)
-//     //     return NULL;
+    if (a == NULL)
+        return NULL;
 
-//     // a->array = kmalloc(capacity * sizeof(void*), GFP_KERNEL);
+    a->array = kmalloc(capacity * sizeof(void*), GFP_KERNEL);
 
-//     // if (a->array == NULL)
-//     //     return NULL;
+    if (a->array == NULL)
+        return NULL;
 
-//     // a->size = 0;
-//     // a->capacity = capacity;
+    a->size = 0;
+    a->capacity = capacity;
 
-//     // return a;
-//     return NULL;
-// }
+    return a;
+}
 
-// Array* array_push(Array* a, void* element)
-// {
-//     // if (a->size == a->capacity)
-//     // {
-//     //     a->capacity *= 2;
-//     //     a->array = krealloc(a->array, a->capacity * sizeof(void*), GFP_KERNEL);
+Array* array_push(Array* a, void* element)
+{
+    if (a->size == a->capacity)
+    {
+        a->capacity *= 2;
+        a->array = krealloc(a->array, a->capacity * sizeof(void*), GFP_KERNEL);
 
-//     //     if (a->array == NULL)
-//     //         return NULL;
+        if (a->array == NULL)
+            return NULL;
 
-//     // }
+    }
 
-//     // a->array[a->size] = element;
-//     // ++a->size;
+    a->array[a->size] = element;
+    ++a->size;
 
-//     return a;
-// }
+    return a;
+}
 
-// void array_free(Array* a)
-// {
-//     // kfree(a->array);
-//     // kfree(a);
-// }
+void array_free(Array* a)
+{
+    kfree(a->array);
+    kfree(a);
+}
 
-// void array_destroy(Array* a)
-// {
-//     // unsigned int i = 0;
-//     // for (; i < a->size; ++i)
-//     //     kfree(a->array[i]);
+void array_destroy(Array* a)
+{
+    unsigned int i = 0;
+    for (; i < a->size; ++i)
+        kfree(a->array[i]);
 
-//     // kfree(a->array);
-//     // kfree(a);
-// }
+    kfree(a->array);
+    kfree(a);
+}

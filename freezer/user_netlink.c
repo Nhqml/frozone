@@ -27,6 +27,27 @@ char* my_exact_copy(char *dest, char*src, size_t len)
     return dest;
 }
 
+char* my_exact_new_cat(char *dest, char*src, size_t len_dest, size_t len_src)
+{
+    char *new_dest = malloc(sizeof(char) * (len_dest + len_src));
+
+    if (new_dest == NULL)
+        return NULL;   
+
+    
+    for (size_t i = 0; i < len_dest; ++i)
+    {
+        new_dest[i] = dest[i];
+    }
+
+    for (size_t i = 0; i < len_src; ++i)
+    {
+        new_dest[len_dest + i] = src[i];
+    }
+
+    return new_dest;
+}
+
 int send_message(int sock_fd, int resource, unsigned int uid, int action, char* resource_data)
 {
     printf("Sending message to kernel\n");
@@ -45,18 +66,33 @@ int send_message(int sock_fd, int resource, unsigned int uid, int action, char* 
     nlh->nlmsg_flags = 0;
     nlh->nlmsg_seq = 0;
 
+    int size_resource_data = 0;
+
     // set data struct
     struct netlink_cmd data =
     {
         .resource = resource,
         .uid = uid,
-        .action = action,
-        .resource_data = resource_data
+        .action = action
     };
 
     // add message to the netlink message strcuture
     char *buf = (char *) &data;
-    char *dest = my_exact_copy(NLMSG_DATA(nlh), buf, sizeof(struct netlink_cmd));
+    char *dest;
+
+    if (resource_data != NULL)
+    {
+        size_resource_data = strlen(resource_data);
+        char *new_buf = my_exact_new_cat(buf, resource_data, sizeof(struct netlink_cmd), size_resource_data);
+
+        dest = my_exact_copy(NLMSG_DATA(nlh), new_buf, sizeof(struct netlink_cmd) + size_resource_data); 
+        free(new_buf);  
+    }
+    else
+    {
+        dest = my_exact_copy(NLMSG_DATA(nlh), buf, sizeof(struct netlink_cmd));    
+    }
+    
     if (dest == NULL)
     {
         return -1;
@@ -77,7 +113,6 @@ int send_message(int sock_fd, int resource, unsigned int uid, int action, char* 
         return -1;
     }
 
-    //free(nlh);
     return res_msg;
 }
 

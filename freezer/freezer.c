@@ -86,10 +86,10 @@ int unfreeze_files_except_uid(unsigned int uid)
 
 int add_connection_whitelist(unsigned int uid, char *ipaddr)
 {
-    return send_socket_msg(NETWORK, uid, UNLOCK, ipaddr);
+    return send_socket_msg(NETWORK, uid, WHITELIST, ipaddr);
 }
 
 int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)
 {
-    return send_socket_msg_except_uid(FILE, uid, UNLOCK, ipaddr);
+    return send_socket_msg_except_uid(FILE, uid, WHITELIST, ipaddr);
 }

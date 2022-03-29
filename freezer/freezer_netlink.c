@@ -22,15 +22,19 @@ static void freezer_recv_msg(struct sk_buff* skb)
     printk(KERN_INFO NETLINK_LOG "entering: %s\n", __FUNCTION__);
 
     nlh = (struct nlmsghdr*)skb->data;
-    data = (struct netlink_cmd*)nlmsg_data(nlh);
+    char *data_as_char_ptr = (char*)nlmsg_data(nlh);
+    data = (struct netlink_cmd*) data_as_char_ptr;
+    char *resource_data = data_as_char_ptr + sizeof(struct netlink_cmd);
+    
     printk(KERN_INFO NETLINK_LOG "resource: %d\n", data->resource);
     printk(KERN_INFO NETLINK_LOG "uid: %d\n", data->uid);
     printk(KERN_INFO NETLINK_LOG "action: %d\n", data->action);
-    printk(KERN_INFO NETLINK_LOG "resource_data: %s\n", data->resource_data);
+    printk(KERN_INFO NETLINK_LOG "resource_data: %s\n", resource_data);
+    
     pid = nlh->nlmsg_pid; /*pid of sending process */
 
     // process the payload
-    freezer_wrapper_res = freezer_call_wrapper(data) == 0 ? NLMSG_DONE : NLMSG_ERROR;
+    freezer_wrapper_res = freezer_call_wrapper(data, resource_data) == 0 ? NLMSG_DONE : NLMSG_ERROR;
 
     // send response back
     skb_out = nlmsg_new(sizeof(int), 0);
