@@ -5,11 +5,6 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-/*
-#include <err.h>
-#include <stdlib.h>
-#include <string.h>
-*/
 
 #include "processes.h"
 #include "users.h"
@@ -53,6 +48,7 @@ process_t** get_processes(void)
 
     Array* processes = array_with_capacity(pids->size + 1);
 
+    puts("Before");
     for (size_t i = 0; i < pids->size; ++i)
     {
         process_t* process = xcalloc(1, sizeof(process_t));
@@ -89,6 +85,7 @@ process_t** get_processes(void)
             }
             fclose(f);
         }
+        puts("After");
 
         array_push(processes, process);
     }
