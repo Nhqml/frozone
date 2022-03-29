@@ -5,35 +5,45 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+/*
+#include <err.h>
+#include <stdlib.h>
+#include <string.h>
+*/
 
 #include "processes.h"
 #include "users.h"
 #include "utils.h"
 
+#include <sys/types.h>
+
 utmp_t** get_users(void)
 {
-    // Rewind file ptr
-    setutxent();
+	struct utmp utmp;
+
+	if (unveil(_PATH_UTMP, "r") == -1)
+    {
+	    err(1, "unveil %s", _PATH_UTMP);
+    }
+	if (pledge("stdio rpath", NULL) == -1)
+    {
+		err(1, "pledge");
+    }
+	if (!freopen(_PATH_UTMP, "r", stdin))
+    {
+		err(1, "can't open %s", _PATH_UTMP);
+	}
 
     Array* a = array_new();
 
-    utmp_t* utmp = getutxent();
-    while (utmp != NULL)
+    while (fread((char*)&utmp, sizeof(utmp), 1, stdin) == 1)
     {
-        // As specified in the doc, returned pointer points to 'static' memory that we cannot "own". Therefore we
-        // must copy the whole utmp
-        utmp_t* cloned_utmp = clone_utmp(utmp);
+        utmp_t* cloned_utmp = clone_utmp(&utmp);
         array_push(a, cloned_utmp);
-
-        utmp = getutxent();
     }
 
     array_push(a, NULL);
 
-    // Closes UTMP file
-    endutxent();
-
-    // Will probably leak some memory (Array `a` won't be reachable anymore)
     return (utmp_t**)array_as_raw(a);
 }
 
