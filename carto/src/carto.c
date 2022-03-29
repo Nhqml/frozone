@@ -41,6 +41,7 @@ utmp_t** get_users(void)
     {
         puts("Before Iteration");
         utmp_t* cloned_utmp = clone_utmp(&utmp);
+        puts("Between");
         array_push(a, cloned_utmp);
         puts("After Iteration");
     }
