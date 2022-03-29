@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include <stdlio.h>
+#include <stdio.h>
 
 Array* array_new(void)
 {
