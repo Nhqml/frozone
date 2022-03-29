@@ -10,6 +10,7 @@
 #include <linux/module.h>
 #include <linux/net.h>
 #include <linux/socket.h>
+#include <linux/string.h>
 #include <linux/version.h>
 
 #define SYSCALLSLOG    "[freezer][syscalls] "
@@ -46,6 +47,48 @@ int uid_is_in_array(int *array, int uid)
             return 0;
     }
     return -1;
+}
+
+int resource_data_is_in_array(struct array_uid *array_uids, int *index, char *resource_data)
+{
+    int orig_uid = original_getuid(NULL);
+    int cur = 0;
+
+    printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
+
+    while (cur < *index)
+    {
+        if (array_uids[cur].uid == orig_uid)
+        {
+            unsigned int i = 0;
+
+            for (; i < array_uids[cur].array->size; ++i)
+            {
+                printk("data = %s\n", (char*)array_uids[cur].array->array[i]);
+
+                if (strncmp((char*)array_uids[cur].array->array[i], resource_data, strlen(resource_data)) == 1)
+                {
+                    return 1;
+                }
+            }
+                
+            return 0;
+        }
+
+        cur++;
+    }
+    return 0;
+}
+
+void array_uid_dispose(struct array_uid *array, int *index)
+{
+    int cur = 0;
+    while (cur < *index)
+    {
+        array_free(array[cur].array);
+
+        cur++;
+    }
 }
 
 
@@ -144,6 +187,7 @@ int hooked_connect(struct pt_regs* regs)
 
     struct __user sockaddr_in* sk = (struct sockaddr_in*)regs->si;
     struct sockaddr_in* copied_sk = kzalloc(sizeof(sk), GFP_KERNEL);
+    char ip_addr[16];
 
     if (!copied_sk)
         printk(KERN_INFO SYSCALLSLOG "error while trying to allocate memory of size %lu \n", sizeof(sk));
@@ -156,10 +200,19 @@ int hooked_connect(struct pt_regs* regs)
             if (copied_sk->sin_family == AF_INET) //  interrupt only internet connections
             {
                 printk(KERN_INFO SYSCALLSLOG "internet connection detected\n");
-                if (is_hooked_user(socket_uid_array, current_socket_index))
+
+                snprintf(ip_addr, sizeof(ip_addr), "%pIS", copied_sk);
+
+                printk(KERN_INFO SYSCALLSLOG "ip addr is %s\n", ip_addr);
+
+                if (!resource_data_is_in_array(whitelist_network, &current_whitelist_network_index, ip_addr))
                 {
-                    printk(KERN_INFO SYSCALLSLOG "connect interrupted\n");
-                    return -1;
+                    if (is_hooked_user(socket_uid_array, current_socket_index))
+                    {
+                        printk(KERN_INFO SYSCALLSLOG "connect interrupted\n");
+                        // TODO return -1;
+                        return (*original_connect)(regs);
+                    }
                 }
             }
         }
@@ -369,7 +422,6 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
 
         case NETWORK:
             add_to_whitelist(whitelist_network, &current_whitelist_network_index, resource_data, data->uid);
-                printk("data = %s\n", (char*)whitelist_network[0].array->array[0]);
             break;
 
         case SESSIONS:
@@ -432,4 +484,6 @@ void reset_freezer_syscalls(void)
     ((syscall_wrapper*)sys_call_table_addr)[__NR_connect] = original_connect;
 
     disable_page_rw((void*)sys_call_table_addr);
+
+    array_uid_dispose(whitelist_network, &current_whitelist_network_index);
 }
