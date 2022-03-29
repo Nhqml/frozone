@@ -60,7 +60,7 @@ process_t** get_processes(void)
 
         char path_buf[PATH_MAX];
         if (snprintf(path_buf, PATH_MAX, "/proc/%d", process->pid) == -1)
-            error(1, errno, "snprintf error");
+            errc(1, errno, "snprintf error");
 
         struct stat process_stat;
         if (stat(path_buf, &process_stat) == 0)
@@ -119,7 +119,7 @@ char** get_files(void)
     for (size_t i = 0; i < pids->size; ++i)
     {
         if (snprintf(proc_pid_path, PATH_MAX, "/proc/%d/fd", *(int*)pids->array[i]) == -1)
-            error(1, errno, "sprintf error");
+            errc(1, errno, "sprintf error");
 
         Array* fds = get_num_dir_contents(proc_pid_path);
 
