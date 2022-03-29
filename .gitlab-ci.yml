@@ -35,7 +35,7 @@ test-freezer-job:
         IS_GITLAB_JOB: 1
     script:
         - meson build && meson compile -C build
-        - ./build/freezer/tests/cunit_tests_freezer
+        - cd build/freezer/tests && ./cunit_tests_freezer
 
 ##### CARTO JOBS #####
 
