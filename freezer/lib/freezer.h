@@ -67,12 +67,9 @@ int unfreeze_connections_except_uid(unsigned int uid);
 
 __VISIBILITY__("default")
 int unfreeze_files_except_uid(unsigned int uid);
-<<<<<<< HEAD:freezer/freezer.h
 
 __VISIBILITY__("default")
 int add_connection_whitelist(unsigned int uid, char *ipaddr);
 
 __VISIBILITY__("default")
 int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr);
-=======
->>>>>>> main:freezer/lib/freezer.h

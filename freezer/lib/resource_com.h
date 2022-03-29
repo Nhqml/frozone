@@ -6,8 +6,6 @@
 #ifndef FREEZER_H
 #define FREEZER_H
 
-#include "array.h"
-
 // Define resources to block
 #define FILE        1
 #define PROCESS     2
@@ -24,12 +22,6 @@ struct netlink_cmd
     int resource;   // resource to block
     unsigned int uid;        // user id to block
     int action;    // block or unblock the resource
-};
-
-struct array_uid
-{
-    unsigned int uid; // user id of the array
-    Array *array; // array to store data
 };
 
 #endif

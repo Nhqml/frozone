@@ -4,7 +4,7 @@
  */
 
 #include "freezer_hook.h"
-#include "resource_com.h"
+#include "array.h"
 
 #include <asm/ptrace.h>
 #include <linux/errno.h>
