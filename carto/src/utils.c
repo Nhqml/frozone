@@ -69,6 +69,7 @@ Array* get_num_dir_contents(char* dir_path)
 
     while ((dir_cur = readdir(dir)) != NULL)
     {
+        puts("here");
         int id = atoi(dir_cur->d_name);
 
         // If pid is 0, atoi did not encounter a valid PID, ote that we do not need to read `/proc/self` since it's a
