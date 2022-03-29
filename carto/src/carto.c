@@ -44,11 +44,8 @@ utmp_t** get_users(void)
 
 process_t** get_processes(void)
 {
-    puts("1");
     Array* pids = get_num_dir_contents("/proc");
-    puts("2");
     Array* processes = array_with_capacity(pids->size + 1);
-    puts("3");
 
     for (size_t i = 0; i < pids->size; ++i)
     {

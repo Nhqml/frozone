@@ -11,10 +11,15 @@ Array* array_new(void)
 
 Array* array_with_capacity(size_t capacity)
 {
+    puts("1");
     Array* a = malloc(sizeof(Array));
+    puts("2");
     a->array = malloc(capacity * sizeof(void*));
+    puts("3");
     a->size = 0;
+    puts("4");
     a->capacity = capacity;
+    puts("5");
 
     return a;
 }
