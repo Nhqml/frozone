@@ -36,16 +36,11 @@ utmp_t** get_users(void)
 
     Array* a = array_new();
 
-    puts("Before Loop");
     while (fread((char*)&utmp, sizeof(utmp), 1, stdin) == 1)
     {
-        puts("Before Iteration");
         utmp_t* cloned_utmp = clone_utmp(&utmp);
-        puts("Between");
         array_push(a, cloned_utmp);
-        puts("After Iteration");
     }
-    puts("After Loop");
 
     array_push(a, NULL);
 
