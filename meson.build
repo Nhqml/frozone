@@ -8,6 +8,8 @@ project('frozone', 'c',
   meson_version: '>=0.61.2'
 )
 
+add_project_arguments('-lkvm', language : 'c')
+
 includes = include_directories('carto/include')
 
 subdir('carto/src')
