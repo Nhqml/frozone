@@ -25,8 +25,6 @@ static void freezer_recv_msg(struct sk_buff* skb)
     int res = 0;
     int freezer_wrapper_res = 0;
 
-    printk(KERN_INFO NETLINK_LOG "entering: %s\n", __FUNCTION__);
-
     nlh = (struct nlmsghdr*)skb->data;
     char *data_as_char_ptr = (char*)nlmsg_data(nlh);
     data = (struct netlink_cmd*) data_as_char_ptr;
@@ -38,12 +36,12 @@ static void freezer_recv_msg(struct sk_buff* skb)
 
     strncpy(resource_data, res_data, strlen(res_data) + 1);
 
-    printk(KERN_INFO NETLINK_LOG "resource: %d\n", data->resource);
-    printk(KERN_INFO NETLINK_LOG "uid: %d\n", data->uid);
-    printk(KERN_INFO NETLINK_LOG "action: %d\n", data->action);
-    printk(KERN_INFO NETLINK_LOG "resource_data: %s\n", resource_data);
+    // printk(KERN_INFO NETLINK_LOG "resource: %d\n", data->resource);
+    // printk(KERN_INFO NETLINK_LOG "uid: %d\n", data->uid);
+    // printk(KERN_INFO NETLINK_LOG "action: %d\n", data->action);
+    // printk(KERN_INFO NETLINK_LOG "resource_data: %s\n", resource_data);
 
-    pid = nlh->nlmsg_pid; /*pid of sending process */
+    pid = nlh->nlmsg_pid;  // pid of sending process
 
     // process the payload
     freezer_wrapper_res = freezer_call_wrapper(data, resource_data) == 0 ? NLMSG_DONE : NLMSG_ERROR;
@@ -59,7 +57,7 @@ static void freezer_recv_msg(struct sk_buff* skb)
     // skb, portid, seq, type, payload, flags
     // put the empty message (with response in the msg.type) on socket buffer
     nlh = nlmsg_put(skb_out, 0, 0, freezer_wrapper_res, 0, 0);
-    NETLINK_CB(skb_out).dst_group = 0; // not in mcast group
+    NETLINK_CB(skb_out).dst_group = 0;  // not in mcast group
 
     // send the message
     res = nlmsg_unicast(nl_sk, skb_out, pid);
@@ -86,7 +84,7 @@ static int __init freezer_init(void)
 
 static void __exit freezer_exit(void)
 {
-    printk(KERN_INFO "exiting freezer module\n");
+    printk(KERN_INFO NETLINK_LOG "exiting freezer module");
     reset_freezer_syscalls();
     netlink_kernel_release(nl_sk);
 }

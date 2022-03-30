@@ -56,7 +56,7 @@ char* my_exact_new_cat(char *dest, char*src, size_t len_dest, size_t len_src)
 
 int send_message(int sock_fd, int resource, unsigned int uid, int action, char* resource_data)
 {
-    printf("Sending message to kernel\n");
+    // printf("Sending message to kernel\n");
 
     // allocate netlink message structure
     nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
@@ -124,7 +124,7 @@ int send_message(int sock_fd, int resource, unsigned int uid, int action, char* 
 
 int init_socket()
 {
-    printf("Initializing socket\n");
+    // printf("Initializing socket\n");
 
     // create socket
     int sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
@@ -154,7 +154,7 @@ int init_socket()
 
 int receive_message(int sock_fd)
 {
-    printf("Receiving message from kernel\n");
+    // printf("Receiving message from kernel\n");
 
     // receive the message
     ssize_t res_msg = recvmsg(sock_fd, &msg, 0);
@@ -163,7 +163,7 @@ int receive_message(int sock_fd)
         return -1;
     }
 
-    printf("Received message payload: %d\n", nlh->nlmsg_type);
+    // printf("Received message payload: %d\n", nlh->nlmsg_type);
 
     if (nlh->nlmsg_type == NLMSG_DONE)
     {
@@ -177,7 +177,8 @@ int receive_message(int sock_fd)
 
 int exit_socket(int sock_fd)
 {
-    printf("Exiting socket\n");
+    // printf("Exiting socket\n");
+    
     if (nlh != NULL)
     {
         free(nlh);
@@ -228,8 +229,6 @@ int send_socket_msg_except_uid(int resource, unsigned int uid, int action, char*
 
         if (p != NULL)
         {
-            printf("For the name %s, the uid is %d\n", entry->ut_user, p->pw_uid);
-
             if (p->pw_uid != uid)
             {
                 res = send_socket_msg(resource, p->pw_uid, action, resource_data);

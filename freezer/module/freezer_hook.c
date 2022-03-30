@@ -57,10 +57,10 @@ int current_sessions_index = 0;
 struct array_uid *whitelist_network[MAX_SIZE_ARRAY];
 int current_whitelist_network_index = 0;
 
-struct array_uid whitelist_file[MAX_SIZE_ARRAY];
+struct array_uid *whitelist_file[MAX_SIZE_ARRAY];
 int current_whitelist_file_index = 0;
 
-struct array_uid whitelist_process[MAX_SIZE_ARRAY];
+struct array_uid *whitelist_process[MAX_SIZE_ARRAY];
 int current_whitelist_process_index = 0;
 
 
@@ -80,8 +80,6 @@ int resource_data_is_in_array(struct array_uid **array_uids, int *index, char *r
     int orig_uid = original_getuid(NULL);
     int cur = 0;
 
-    // printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
-
     while (cur < *index)
     {
         if (array_uids[cur]->uid == orig_uid)
@@ -90,8 +88,6 @@ int resource_data_is_in_array(struct array_uid **array_uids, int *index, char *r
 
             for (; i < array_uids[cur]->array->size; ++i)
             {
-                printk("dataInTest = %s\n", (char*)array_uids[cur]->array->array[i]);
-
                 if (strncmp((char*)array_uids[cur]->array->array[i], resource_data, strlen(resource_data)) == 0)
                 {
                     return 1;
@@ -193,10 +189,6 @@ int hooked_execve(struct pt_regs* regs)
         {
             if (!resource_data_is_in_array(whitelist_process, &current_whitelist_process_index, process_name))
             {
-                printk(KERN_INFO SYSCALLSLOG "excve interrupted");
-
-                // TODO: replace this line with `return 0;` to effectively interrupt the syscall
-                // return (*original_execve)(regs);
                 return -1;
             }
         }
@@ -299,6 +291,8 @@ char *get_path_name(int fd)
 
 int hooked_write(struct pt_regs* regs)
 {
+    //printk(KERN_INFO SYSCALLSLOG "write was called\n");
+
     if (is_hooked_user(file_uid_array, current_file_index))
     {
         char *pathname = get_path_name(regs->di);
@@ -309,7 +303,7 @@ int hooked_write(struct pt_regs* regs)
         {
             kfree(pathname);
 
-            printk(KERN_INFO SYSCALLSLOG "write interrupted\n");
+            // printk(KERN_INFO SYSCALLSLOG "write interrupted\n");
 
             // TODO: replace this line with `return 0;` to effectively interrupt the syscall
             return (*original_write)(regs);
@@ -323,6 +317,8 @@ int hooked_write(struct pt_regs* regs)
 
 int hooked_openat(struct pt_regs* regs)
 {
+    //printk(KERN_INFO SYSCALLSLOG "openat was called\n");
+
     // block creation of sessions FROM blocked users
     if (is_hooked_user(sessions_uid_array, current_sessions_index))
     {
@@ -334,7 +330,7 @@ int hooked_openat(struct pt_regs* regs)
         {
             if (strncmp(opened_file, passwd_file, NAME_MAX) == 0)
             {
-                printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
+                // printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
                 return EACCES;
             }
         }
@@ -350,7 +346,7 @@ int hooked_openat(struct pt_regs* regs)
         {
             if (!resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, opened_file))
             {
-                printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
+                // printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
                 return EACCES;
             }
         }
@@ -376,8 +372,6 @@ int add_uid_to_array(int* array, int *index, unsigned int uid)
     // uid not already in array, so add uid
     array[*index] = uid;
     *index = *index + 1;
-    // TODO: remove in production
-    printk(KERN_INFO SYSCALLSLOG "Uid %d was added to array\n", uid);
 
     return 1;
 }
@@ -411,12 +405,6 @@ int remove_uid_from_array(int *array, int *index, unsigned int uid)
         array[cur] = array[cur + 1];
         cur++;
     }
-
-    printk(KERN_INFO SYSCALLSLOG "Uid %d was removed from array\n", uid);
-    // TODO: remove these printk in production
-    // printk(KERN_INFO SYSCALLSLOG "array[0] = %d", array[0]);
-    // printk(KERN_INFO SYSCALLSLOG "array[1] = %d", array[1]);
-    // printk(KERN_INFO SYSCALLSLOG "index = %d", *index);
 
     return 1;
 }
@@ -456,7 +444,6 @@ int add_to_whitelist(struct array_uid **array, int *index, char *resource_data, 
 
 int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
 {
-    printk("freezer wrapper called");
     if (data->action == LOCK)
     {
         switch (data->resource)
@@ -519,13 +506,6 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
 
         case NETWORK:
             add_to_whitelist(whitelist_network, &current_whitelist_network_index, resource_data, data->uid);
-            printk("size = %d\n", whitelist_network[0]->array->size);
-
-            int i = 0;
-            for (; i < whitelist_network[0]->array->size; ++i)
-            {
-                printk("data =%s\n", (char*)whitelist_network[0]->array->array[i]);
-            }
             break;
 
         default:
@@ -561,7 +541,7 @@ unsigned long acquire_sys_call_table(void)
 
 int init_freezer_syscalls(void)
 {
-    printk(KERN_INFO SYSCALLSLOG "module has been loaded\n");
+    // printk(KERN_INFO SYSCALLSLOG "module has been loaded\n");
 
     sys_call_table_addr = acquire_sys_call_table();
 
@@ -593,7 +573,7 @@ int init_freezer_syscalls(void)
 
 void reset_freezer_syscalls(void)
 {
-    printk(KERN_INFO SYSCALLSLOG "module has been unloaded\n");
+    // printk(KERN_INFO SYSCALLSLOG "module has been unloaded\n");
 
     enable_page_rw((void*)sys_call_table_addr);
 
@@ -607,4 +587,6 @@ void reset_freezer_syscalls(void)
     array_uid_dispose(whitelist_network, &current_whitelist_network_index);
     array_uid_dispose(whitelist_file, &current_whitelist_file_index);
     array_uid_dispose(whitelist_process, &current_whitelist_process_index);
+
+    printk(KERN_INFO SYSCALLSLOG "syscalls have been unhooked\n");
 }
