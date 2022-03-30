@@ -74,7 +74,8 @@ Array* add_connections_from(char* file_path, Array* a, enum conn_type conn_type,
             {
                 hex_to_ipv4(s_addr, &(conn->s_addr.addr));
                 hex_to_ipv4(d_addr, &(conn->d_addr.addr));
-            } else
+            }
+            else
             {
                 hex_to_ipv6(s_addr, &(conn->s_addr.addr6));
                 hex_to_ipv6(d_addr, &(conn->d_addr.addr6));
