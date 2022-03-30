@@ -37,12 +37,12 @@ static void freezer_recv_msg(struct sk_buff* skb)
         return;
 
     strncpy(resource_data, res_data, strlen(res_data) + 1);
-    
+
     printk(KERN_INFO NETLINK_LOG "resource: %d\n", data->resource);
     printk(KERN_INFO NETLINK_LOG "uid: %d\n", data->uid);
     printk(KERN_INFO NETLINK_LOG "action: %d\n", data->action);
     printk(KERN_INFO NETLINK_LOG "resource_data: %s\n", resource_data);
-    
+
     pid = nlh->nlmsg_pid; /*pid of sending process */
 
     // process the payload
