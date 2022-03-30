@@ -39,7 +39,7 @@ secu-tests-freezer-job:
         - pip install semgrep colorama tabulate tabulate[widechars]
     script:
         - semgrep --metrics=off --config=security/freezer_module.yaml freezer -o res.json --json
-        - python3 pretty_printer_semgrep.py res.json
+        - python3 security/pretty_printer_semgrep.py res.json
 
 ##### CARTO JOBS #####
 
