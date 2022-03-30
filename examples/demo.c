@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     if (f == NULL)
         f = stdout;
 
-    char buf[30];
+    char buf[256];
 
     fputs("============================ USERS ==============================\n", f);
     fprintf(f, "%-15s%-10s%-30s%-10s\n", "Name", "Device", "Host", "PID");
@@ -80,6 +80,33 @@ int main(int argc, char* argv[])
         free(*process);
     }
     free(processes);
+
+    fputc('\n', f);
+
+    fputs("======================================= CONNECTIONS =======================================\n", f);
+    connection_t** connections = get_connections();
+    fprintf(f, "%-5s%-30s%-10s%-30s%-10s%-7s\n", "Type", "Src Addr", "Src Port", "Dest Addr", "Dest Port", "UID");
+    for (connection_t** connection = connections; *connection != NULL; ++connection)
+    {
+        connection_t* conn = *connection;
+
+        fprintf(f, "%-5s", conn->type == UDP ? "UDP" : "TCP");
+
+        fprintf(f, "%-30s",
+                inet_ntop(conn->addr_type, conn->addr_type == AF_INET ? &(conn->s_addr.addr) : &(conn->s_addr.addr6),
+                          buf, 256));
+        fprintf(f, "%-10u", conn->s_port);
+
+        fprintf(f, "%-30s",
+                inet_ntop(conn->addr_type, conn->addr_type == AF_INET ? &(conn->d_addr.addr) : &(conn->d_addr.addr6),
+                          buf, 256));
+        fprintf(f, "%-10u", conn->s_port);
+
+        fprintf(f, "%-10u\n", conn->uid);
+
+        free(conn);
+    }
+    free(connections);
 
     return 0;
 }

@@ -10,6 +10,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "connections.h"
 #include "processes.h"
 #include "users.h"
 #include "utils.h"
@@ -94,7 +95,19 @@ process_t** get_processes(void)
     return (process_t**)array_as_raw(processes);
 }
 
-void get_connections(void) {}
+connection_t** get_connections(void)
+{
+    Array* connections = array_new();
+
+    add_connections_from("/proc/net/tcp", connections, TCP, AF_INET);
+    add_connections_from("/proc/net/tcp6", connections, TCP, AF_INET6);
+    add_connections_from("/proc/net/udp", connections, UDP, AF_INET);
+    add_connections_from("/proc/net/udp6", connections, UDP, AF_INET6);
+
+    array_push(connections, NULL);
+
+    return (connection_t**)array_as_raw(connections);
+}
 
 file_t** get_files(void)
 {
