@@ -42,6 +42,8 @@ utmp_t** get_users(void)
     return (utmp_t**)array_as_raw(a);
 }
 
+struct varent *vhead;
+
 process_t** get_processes(void)
 {
     struct varent *vent;
