@@ -3,13 +3,10 @@ project('frozone', 'c',
   default_options : [
     'warning_level=3',
     'buildtype=debugoptimized',
-    '-lkvm'
   ],
   license: 'MIT',
   meson_version: '>=0.61.2'
 )
-
-add_global_arguments('-lkvm', language : 'c')
 
 includes = include_directories('carto/include')
 
