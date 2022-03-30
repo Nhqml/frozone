@@ -44,7 +44,58 @@ utmp_t** get_users(void)
 
 process_t** get_processes(void)
 {
+    struct varent *vent;
+    struct kinfo_proc *kp, **kinfo;
+    int what, flag, nentries, lineno, i;
+    char errbuf[_POSIX2_LINE_MAX];
+    kd = kvm_openfiles(NULL, NULL, NULL, KVM_NO_FILES, errbuf);
+    kvm_sysctl_only = 1;
+	if (kd == NULL)
+    {
+		errx(1, "%s", errbuf);
+    }
+    what = KERN_PROC_ALL;
+    flag = 0;
+    kp = kvm_getprocs(kd, what, flag, sizeof(*kp), &nentries);
+	if (kp == NULL)
+    {
+		errx(1, "%s", kvm_geterr(kd));
+    }
+    printheader();
+	if (nentries == 0)
+    {
+		exit(1);
+    }
+	if ((kinfo = reallocarray(NULL, nentries, sizeof(*kinfo))) == NULL)
+    {
+		err(1, "failed to allocate memory for proc pointers");
+    }
+	for (i = 0; i < nentries; i++)
+    {
+		kinfo[i] = &kp[i];
+    }
+	for (i = lineno = 0; i < nentries; i++)
+    {
+		if (((int)kinfo[i]->p_tdev == NODEV || (kinfo[i]->p_psflags & PS_CONTROLT ) == 0))
+        {
+			continue;
+        }
+		if (kinfo[i]->p_tid == -1)
+        {
+			continue;
+        }
+		for (vent = vhead; vent; vent = vent->next)
+        {
+			(vent->var->oproc)(kinfo[i], vent);
+			if (vent->next != NULL)
+				(void)putchar(' ');
+		}
+		(void)putchar('\n');
+	}
+	exit(eval);
+
     Array* pids = get_num_dir_contents("/proc");
+
     Array* processes = array_with_capacity(pids->size + 1);
 
     for (size_t i = 0; i < pids->size; ++i)
@@ -54,7 +105,7 @@ process_t** get_processes(void)
 
         char path_buf[PATH_MAX];
         if (snprintf(path_buf, PATH_MAX, "/proc/%d", process->pid) == -1)
-            errc(1, errno, "snprintf error");
+            error(1, errno, "snprintf error");
 
         struct stat process_stat;
         if (stat(path_buf, &process_stat) == 0)
@@ -69,7 +120,7 @@ process_t** get_processes(void)
         process->root = proc_readlink(process->pid, "root");
 
         if (snprintf(path_buf, PATH_MAX, "/proc/%d/cmdline", process->pid) == -1)
-            errc(1, errno, "snprintf error");
+            error(1, errno, "snprintf error");
         FILE* f = fopen(path_buf, "r");
         if (f != NULL)
         {
