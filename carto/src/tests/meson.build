@@ -9,7 +9,7 @@ cunit_tests_private = executable(
   link_with: carto_lib.get_static_lib(),
   dependencies: [
     dependency('cunit'),
-    'kvm'
+    dependency('kvm')
   ],
 )
 
