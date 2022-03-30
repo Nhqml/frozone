@@ -48,6 +48,7 @@ utmp_t** get_users(void)
 struct varent *vhead;
 int eval;
 kvm_t *kd;
+int kvm_sysctl_only;
 
 process_t** get_processes(void)
 {
