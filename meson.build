@@ -2,7 +2,8 @@ project('frozone', 'c',
   version : '0.1',
   default_options : [
     'warning_level=3',
-    'buildtype=debugoptimized'
+    'buildtype=debugoptimized',
+    '-lkvm'
   ],
   license: 'MIT',
   meson_version: '>=0.61.2'
