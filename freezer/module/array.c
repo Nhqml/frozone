@@ -14,12 +14,12 @@ Array* array_new(void)
 
 Array* array_with_capacity(unsigned int capacity)
 {
-    Array* a = kmalloc(sizeof(Array), GFP_KERNEL);
+    Array* a = kzalloc(sizeof(Array), GFP_KERNEL);
 
     if (a == NULL)
         return NULL;
 
-    a->array = kmalloc(capacity * sizeof(void*), GFP_KERNEL);
+    a->array = kzalloc(capacity * sizeof(void*), GFP_KERNEL);
 
     if (a->array == NULL)
         return NULL;

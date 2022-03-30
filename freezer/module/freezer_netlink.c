@@ -30,7 +30,13 @@ static void freezer_recv_msg(struct sk_buff* skb)
     nlh = (struct nlmsghdr*)skb->data;
     char *data_as_char_ptr = (char*)nlmsg_data(nlh);
     data = (struct netlink_cmd*) data_as_char_ptr;
-    char *resource_data = data_as_char_ptr + sizeof(struct netlink_cmd);
+
+    char *res_data = data_as_char_ptr + sizeof(struct netlink_cmd);
+    char *resource_data = kzalloc(strlen(res_data) + 1, GFP_KERNEL);
+    if (!resource_data)
+        return;
+
+    strncpy(resource_data, res_data, strlen(res_data) + 1);
     
     printk(KERN_INFO NETLINK_LOG "resource: %d\n", data->resource);
     printk(KERN_INFO NETLINK_LOG "uid: %d\n", data->uid);
