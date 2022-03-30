@@ -72,7 +72,7 @@ process_t** get_processes(void)
     {
 		errx(1, "%s", kvm_geterr(kd));
     }
-    printheader();
+    //printheader();
 	if (nentries == 0)
     {
 		exit(1);
