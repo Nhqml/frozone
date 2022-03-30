@@ -6,6 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <kvm.h>
 #include <sys/types.h>
 #include <sys/proc.h>
 #include <sys/sysctl.h>
