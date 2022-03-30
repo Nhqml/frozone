@@ -42,7 +42,7 @@ int current_socket_index = 0;
 int sessions_uid_array[MAX_SIZE_ARRAY];
 int current_sessions_index = 0;
 
-struct array_uid whitelist_network[MAX_SIZE_ARRAY];
+struct array_uid *whitelist_network[MAX_SIZE_ARRAY];
 int current_whitelist_network_index = 0;
 
 struct array_uid whitelist_file[MAX_SIZE_ARRAY];
@@ -63,7 +63,7 @@ int uid_is_in_array(int *array, int uid)
     return -1;
 }
 
-int resource_data_is_in_array(struct array_uid *array_uids, int *index, char *resource_data)
+int resource_data_is_in_array(struct array_uid **array_uids, int *index, char *resource_data)
 {
     int orig_uid = original_getuid(NULL);
     int cur = 0;
@@ -72,15 +72,15 @@ int resource_data_is_in_array(struct array_uid *array_uids, int *index, char *re
 
     while (cur < *index)
     {
-        if (array_uids[cur].uid == orig_uid)
+        if (array_uids[cur]->uid == orig_uid)
         {
             unsigned int i = 0;
 
-            for (; i < array_uids[cur].array->size; ++i)
+            for (; i < array_uids[cur]->array->size; ++i)
             {
-                printk("data = %s\n", (char*)array_uids[cur].array->array[i]);
+                printk("dataInTest = %s\n", (char*)array_uids[cur]->array->array[i]);
 
-                if (strncmp((char*)array_uids[cur].array->array[i], resource_data, strlen(resource_data)) == 1)
+                if (strncmp((char*)array_uids[cur]->array->array[i], resource_data, strlen(resource_data)) == 0)
                 {
                     return 1;
                 }
@@ -94,12 +94,12 @@ int resource_data_is_in_array(struct array_uid *array_uids, int *index, char *re
     return 0;
 }
 
-void array_uid_dispose(struct array_uid *array, int *index)
+void array_uid_dispose(struct array_uid **array, int *index)
 {
     int cur = 0;
     while (cur < *index)
     {
-        array_free(array[cur].array);
+        array_destroy(array[cur]->array);
 
         cur++;
     }
@@ -418,7 +418,7 @@ int remove_uid_from_array(int *array, int *index, unsigned int uid)
     return 1;
 }
 
-int add_to_whitelist(struct array_uid *array, int *index, char *resource_data, unsigned int uid)
+int add_to_whitelist(struct array_uid **array, int *index, char *resource_data, unsigned int uid)
 {
     int cur = 0;
 
@@ -427,21 +427,23 @@ int add_to_whitelist(struct array_uid *array, int *index, char *resource_data, u
 
     while (cur < *index)
     {
-        if (array[cur].uid == uid)
+        if (array[cur]->uid == uid)
         {
-            array_push(array[cur].array, resource_data);
+            array_push(array[cur]->array, resource_data);
             return 1;
         }
 
         cur++;
     }
 
-    struct array_uid new_array_uid =
-    {
-        .uid = uid,
-        .array = array_new()
-    };
-    array_push(new_array_uid.array, resource_data); 
+    struct array_uid *new_array_uid = kzalloc(sizeof(struct array_uid), GFP_KERNEL);
+    if (!new_array_uid)
+        return -1;
+
+    new_array_uid->uid = uid;
+    new_array_uid->array = array_new();
+    
+    array_push(new_array_uid->array, resource_data); 
 
     array[*index] = new_array_uid;
     *index = *index + 1;
@@ -514,6 +516,15 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
 
         case NETWORK:
             add_to_whitelist(whitelist_network, &current_whitelist_network_index, resource_data, data->uid);
+            
+            printk("size = %d\n", whitelist_network[0]->array->size);
+
+            int i = 0;
+            for (; i < whitelist_network[0]->array->size; ++i)
+            {                
+                printk("data =%s\n", (char*)whitelist_network[0]->array->array[i]);
+            }
+
             break;
 
         default:
