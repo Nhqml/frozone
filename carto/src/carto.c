@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/proc.h>
 #include <sys/sysctl.h>
+#include <sys/param.h>
 
 #include "processes.h"
 #include "users.h"
