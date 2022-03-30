@@ -21,6 +21,19 @@
 #include <linux/string.h>
 #include <linux/version.h>
 
+
+/* The way we access "sys_call_table" varies as kernel internal changes.
+ * Source: https://sysprog21.github.io/lkmpg/#sysfs-interacting-with-your-module
+ * - Prior to v5.4 : manual symbol lookup
+ * - v5.5 to v5.6  : use kallsyms_lookup_name()
+ * - v5.7+         : Kprobes or specific kernel module parameter
+ */
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0)
+#define KPROBE_LOOKUP   1
+#include <linux/kprobes.h>
+#endif
+
 #define SYSCALLSLOG    "[freezer][syscalls] "
 #define MAX_SIZE_ARRAY 1024
 
@@ -81,7 +94,7 @@ int resource_data_is_in_array(struct array_uid **array_uids, int *index, char *r
                     return 1;
                 }
             }
-                
+
             return 0;
         }
 
@@ -230,7 +243,8 @@ int hooked_connect(struct pt_regs* regs)
                         // printk(KERN_INFO SYSCALLSLOG "connect interrupted");
 
                         // TODO return -1;
-                        return (*original_connect)(regs);
+                        return -1;
+                        // return (*original_connect)(regs);
                     }
                 }
             }
@@ -431,8 +445,8 @@ int add_to_whitelist(struct array_uid **array, int *index, char *resource_data, 
 
     new_array_uid->uid = uid;
     new_array_uid->array = array_new();
-    
-    array_push(new_array_uid->array, resource_data); 
+
+    array_push(new_array_uid->array, resource_data);
 
     array[*index] = new_array_uid;
     *index = *index + 1;
@@ -518,11 +532,30 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
     return 0;
 }
 
+unsigned long acquire_sys_call_table(void)
+{
+#ifdef KPROBE_LOOKUP
+    unsigned long (*kallsyms_lookup_name)(const char *name);
+    struct kprobe kp = {
+        .symbol_name = "kallsyms_lookup_name",
+    };
+
+    if (register_kprobe(&kp) < 0)
+    {
+        return NULL;
+    }
+
+    kallsyms_lookup_name = (unsigned long (*)(const char *name))kp.addr;
+    unregister_kprobe(&kp);
+#endif
+    return kallsyms_lookup_name("sys_call_table");
+}
+
 int init_freezer_syscalls(void)
 {
     // printk(KERN_INFO SYSCALLSLOG "module has been loaded\n");
 
-    sys_call_table_addr = kallsyms_lookup_name("sys_call_table");
+    sys_call_table_addr = acquire_sys_call_table();
 
     enable_page_rw((void*)sys_call_table_addr);
 
