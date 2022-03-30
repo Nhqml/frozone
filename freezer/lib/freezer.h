@@ -73,3 +73,15 @@ int add_connection_whitelist(unsigned int uid, char *ipaddr);
 
 __VISIBILITY__("default")
 int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr);
+
+__VISIBILITY__("default")
+int add_file_whitelist(unsigned int uid, char *file_path);
+
+__VISIBILITY__("default")
+int add_file_whitelist_except_uid(unsigned int uid, char *file_path);
+
+__VISIBILITY__("default")
+int add_process_whitelist(unsigned int uid, char *process_name);
+
+__VISIBILITY__("default")
+int add_process_whitelist_except_uid(unsigned int uid, char *process_name);
