@@ -1,3 +1,5 @@
+add_global_arguments('-lkvm', language : 'c')
+
 sources = files([
   'carto.c',
   'utils.c',
