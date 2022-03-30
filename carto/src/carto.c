@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-#include <signals.h>
+#include <signal.h>
 
 #include <kvm.h>
 #include <sys/types.h>
@@ -115,7 +115,7 @@ process_t** get_processes(void)
 
         char path_buf[PATH_MAX];
         if (snprintf(path_buf, PATH_MAX, "/proc/%d", process->pid) == -1)
-            error(1, errno, "snprintf error");
+            errc(1, errno, "snprintf error");
 
         struct stat process_stat;
         if (stat(path_buf, &process_stat) == 0)
@@ -130,7 +130,7 @@ process_t** get_processes(void)
         process->root = proc_readlink(process->pid, "root");
 
         if (snprintf(path_buf, PATH_MAX, "/proc/%d/cmdline", process->pid) == -1)
-            error(1, errno, "snprintf error");
+            errc(1, errno, "snprintf error");
         FILE* f = fopen(path_buf, "r");
         if (f != NULL)
         {
