@@ -46,6 +46,7 @@ utmp_t** get_users(void)
 
 struct varent *vhead;
 int eval;
+kvm_t *kd;
 
 process_t** get_processes(void)
 {
