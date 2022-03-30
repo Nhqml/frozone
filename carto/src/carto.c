@@ -5,8 +5,9 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-#include <signal.h>
 
+#include <signal.h>
+#include <fcntl.h>
 #include <kvm.h>
 #include <sys/types.h>
 #include <sys/proc.h>
