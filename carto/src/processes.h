@@ -7,6 +7,8 @@ typedef struct varent {
 	struct var *var;
 } VARENT;
 
+struct kinfo_proc;
+
 typedef struct var {
 	char	*name;
 	char	*header;
