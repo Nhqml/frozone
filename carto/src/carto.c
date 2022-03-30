@@ -11,6 +11,7 @@
 #include "utils.h"
 
 #include <sys/types.h>
+#include <sys/proc.h>
 
 utmp_t** get_users(void)
 {
