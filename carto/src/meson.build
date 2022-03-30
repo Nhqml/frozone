@@ -1,3 +1,5 @@
+add_project_arguments('-lkvm', language : 'c')
+
 sources = files([
   'carto.c',
   'utils.c',
@@ -10,5 +12,3 @@ carto_lib = both_libraries(
   include_directories: includes,
   gnu_symbol_visibility: 'hidden'
 )
-
-add_project_arguments('-lkvm', language : 'c')
