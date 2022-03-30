@@ -6,12 +6,13 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <sys/types.h>
+#include <sys/proc.h>
+#include <sys/sysctl.h>
+
 #include "processes.h"
 #include "users.h"
 #include "utils.h"
-
-#include <sys/types.h>
-#include <sys/proc.h>
 
 utmp_t** get_users(void)
 {
