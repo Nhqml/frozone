@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+#include <signals.h>
 
 #include <kvm.h>
 #include <sys/types.h>
