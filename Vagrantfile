@@ -10,6 +10,11 @@ Vagrant.configure("2") do |config|
     ubuntu.vm.provision "shell", path: "vagrant/vagrant_init_ubuntu.sh"
   end
 
+  config.vm.define :ubuntu2 do |ubuntu2|
+    ubuntu2.vm.box = "generic/ubuntu2104"
+    ubuntu2.vm.provision "shell", path: "vagrant/vagrant_init_ubuntu.sh"
+  end
+
   config.vm.define :debian do |debian|
     debian.vm.box = "generic/debian11"
     debian.vm.provision "shell", path: "vagrant/vagrant_init_debian.sh"
