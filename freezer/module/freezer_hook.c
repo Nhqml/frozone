@@ -6,10 +6,13 @@
 #include "freezer_hook.h"
 #include <asm/ptrace.h>
 #include <linux/errno.h>
+#include <linux/fdtable.h>
+#include <linux/fs.h>
 #include <linux/in.h>
 #include <linux/inet.h>
 #include <linux/kallsyms.h>
 #include <linux/kernel.h>
+#include <linux/limits.h>
 #include <linux/module.h>
 #include <linux/net.h>
 #include <linux/socket.h>
@@ -54,6 +57,12 @@ int current_sessions_index = 0;
 struct array_uid *whitelist_network[MAX_SIZE_ARRAY];
 int current_whitelist_network_index = 0;
 
+struct array_uid whitelist_file[MAX_SIZE_ARRAY];
+int current_whitelist_file_index = 0;
+
+struct array_uid whitelist_process[MAX_SIZE_ARRAY];
+int current_whitelist_process_index = 0;
+
 
 int uid_is_in_array(int *array, int uid)
 {
@@ -71,7 +80,7 @@ int resource_data_is_in_array(struct array_uid **array_uids, int *index, char *r
     int orig_uid = original_getuid(NULL);
     int cur = 0;
 
-    printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
+    // printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
 
     while (cur < *index)
     {
@@ -141,21 +150,14 @@ int disable_page_rw(void* ptr)
 }
 
 /**
- * is_hooked_user - Hook a user based on its uid
- * @uid: uid of the user to hook
- *
- * Used to hook a syscall for a specific user.
- * It compares the caller's uid with the param uid
- *
- * Usage example to block the user 1000:
- * if (is_hooked_user(1000)) {return 0;}
+ * is_hooked_user - Check if a user has their syscalls hooked based on its uid
+ * @uid: uid of the user to check
+ * @return: 1 if user is hooked, else 0
  */
 int is_hooked_user(int* array, int index)
 {
     int orig_uid = original_getuid(NULL);
     int cur = 0;
-
-    // printk(KERN_INFO SYSCALLSLOG "uid = %d", orig_uid);
 
     while (cur < index)
     {
@@ -183,12 +185,23 @@ int hooked_execve(struct pt_regs* regs)
 
     if (is_hooked_user(process_uid_array, current_process_index))
     {
-        printk(KERN_INFO SYSCALLSLOG "excve interrupted");
+        char process_name[NAME_MAX] = {0};
+        char __user *process_name_user = (char *)regs->di;
+        unsigned long error = strncpy_from_user(process_name, process_name_user, PATH_MAX);
 
-        // TODO: replace this line with `return 0;` to effectively interrupt the syscall
-        // return (*original_execve)(regs);
-        return -1;
+        if (error > 0)
+        {
+            if (!resource_data_is_in_array(whitelist_process, &current_whitelist_process_index, process_name))
+            {
+                printk(KERN_INFO SYSCALLSLOG "excve interrupted");
+
+                // TODO: replace this line with `return 0;` to effectively interrupt the syscall
+                // return (*original_execve)(regs);
+                return -1;
+            }
+        }
     }
+
     return (*original_execve)(regs);
 }
 
@@ -201,7 +214,8 @@ int hooked_execve(struct pt_regs* regs)
  */
 int hooked_connect(struct pt_regs* regs)
 {
-    // printk(KERN_INFO SYSCALLSLOG "connect was called\n");
+    if (!is_hooked_user(socket_uid_array, current_socket_index))
+        return (*original_connect)(regs);
 
     struct __user sockaddr_in* sk = (struct sockaddr_in*)regs->si;
     struct sockaddr_in* copied_sk = kzalloc(sizeof(sk), GFP_KERNEL);
@@ -225,13 +239,9 @@ int hooked_connect(struct pt_regs* regs)
 
                 if (!resource_data_is_in_array(whitelist_network, &current_whitelist_network_index, ip_addr))
                 {
-                    if (is_hooked_user(socket_uid_array, current_socket_index))
-                    {
-                        printk(KERN_INFO SYSCALLSLOG "connect interrupted\n");
-                        // TODO return -1;
-                        return -1;
-                        // return (*original_connect)(regs);
-                    }
+                    // IP address is not in the whitelist, so block !
+                    printk(KERN_INFO SYSCALLSLOG "connect interrupted\n");
+                    return -1;
                 }
             }
         }
@@ -244,15 +254,70 @@ int hooked_connect(struct pt_regs* regs)
     return (*original_connect)(regs);
 }
 
+char *get_path_name(int fd)
+{
+    char *tmp;
+    char *pathname;
+    char *dest;
+    struct file *file;
+    struct path *path;
+    struct files_struct *files;
+
+    files = current->files;
+
+    file = fcheck_files(files, fd);
+    if (!file)
+    {
+        return NULL;
+    }
+
+    path = &file->f_path;
+
+    tmp = kzalloc(PATH_MAX, GFP_KERNEL);
+    if (!tmp)
+    {
+        return NULL;
+    }
+
+    pathname = d_path(path, tmp, PAGE_SIZE);
+
+    dest = kzalloc((strlen(pathname) + 1) * sizeof(char), GFP_KERNEL);
+
+    if (!dest)
+    {
+        printk(KERN_INFO SYSCALLSLOG "error while trying to allocate memory of size %lu \n", (strlen(pathname) + 1) * sizeof(char));
+        kfree(tmp);
+        return NULL;
+    }
+    else
+    {
+        strncpy(dest, pathname, strlen(pathname));
+        kfree(tmp);
+        return dest;
+    }
+}
+
 int hooked_write(struct pt_regs* regs)
 {
     if (is_hooked_user(file_uid_array, current_file_index))
     {
-        printk(KERN_INFO SYSCALLSLOG "write interrupted\n");
+        char *pathname = get_path_name(regs->di);
 
-        // TODO: replace this line with `return 0;` to effectively interrupt the syscall
-        return (*original_write)(regs);
+        // printk(KERN_INFO SYSCALLSLOG "pathname = %s\n", pathname);
+
+        if (!resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, pathname))
+        {
+            kfree(pathname);
+
+            printk(KERN_INFO SYSCALLSLOG "write interrupted\n");
+
+            // TODO: replace this line with `return 0;` to effectively interrupt the syscall
+            return (*original_write)(regs);
+        }
+
+        kfree(pathname);
     }
+
     return (*original_write)(regs);
 }
 
@@ -278,8 +343,17 @@ int hooked_openat(struct pt_regs* regs)
     // block opening of files for blocked users
     if (is_hooked_user(file_uid_array, current_file_index))
     {
-        printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
-        return EACCES;
+        char opened_file[PATH_MAX] = {0};
+        char __user *op_file_user = (char *)regs->si;
+        unsigned long error = strncpy_from_user(opened_file, op_file_user, PATH_MAX);
+        if (error > 0)
+        {
+            if (!resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, opened_file))
+            {
+                printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
+                return EACCES;
+            }
+        }
     }
 
     return (*original_openat)(regs);
@@ -436,11 +510,11 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
         switch (data->resource)
         {
         case FILE:
-            // add_to_whitelist(file_uid_array, data->resource_data, data->uid);
+            add_to_whitelist(whitelist_file, &current_whitelist_file_index, resource_data, data->uid);
             break;
 
         case PROCESS:
-            // add_to_whitelist(process_uid_array, data->resource_data, data->uid);
+            add_to_whitelist(whitelist_process, &current_whitelist_process_index, resource_data, data->uid);
             break;
 
         case NETWORK:
@@ -452,11 +526,6 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
             {
                 printk("data =%s\n", (char*)whitelist_network[0]->array->array[i]);
             }
-
-            break;
-
-        case SESSIONS:
-            // add_to_whitelist(sessions_uid_array, data->resource_data, data->uid);
             break;
 
         default:
@@ -536,4 +605,6 @@ void reset_freezer_syscalls(void)
     disable_page_rw((void*)sys_call_table_addr);
 
     array_uid_dispose(whitelist_network, &current_whitelist_network_index);
+    array_uid_dispose(whitelist_file, &current_whitelist_file_index);
+    array_uid_dispose(whitelist_process, &current_whitelist_process_index);
 }
