@@ -1,0 +1,64 @@
+rules:
+# ---------- SECURITY RULES ---------- #
+  - id: insecure-use-string-copy-fn
+    pattern-either:
+      - pattern: strcpy(...)
+      - pattern: strncpy(...)
+    message: >-
+      Finding triggers whenever there is a strcpy or strncpy used.
+      This is an issue because strcpy does not affirm the size of the destination array
+      and strncpy will not automatically NULL-terminate strings.
+      This can lead to buffer overflows, which can cause program crashes
+      and potentially let an attacker inject code in the program.
+      Fix this by using strcpy_s instead (although note that strcpy_s is an
+      optional part of the C11 standard, and so may not be available).
+    metadata:
+      references:
+        - https://cwe.mitre.org/data/definitions/676
+        - https://nvd.nist.gov/vuln/detail/CVE-2019-11365
+      category: security
+      technology:
+        - c
+      confidence: MEDIUM
+    languages: [c]
+    severity: WARNING
+
+  - id: insecure-use-strcat-fn
+    pattern-either:
+      - pattern: strcat(...)
+    message: >-
+      Finding triggers whenever there is a strcat.
+      strcat can be used to exploit a buffer overflow.
+      Use strncat instead, and check the size of the dst buffer thoroughly.
+    metadata:
+      references:
+        - https://nvd.nist.gov/vuln/detail/CVE-2019-12553
+        - https://techblog.mediaservice.net/2020/04/cve-2020-2851-stack-based-buffer-overflow-in-cde-libdtsvc/
+      category: security
+      technology:
+        - c
+      confidence: MEDIUM
+    languages: [c]
+    severity: WARNING
+
+# ---------- CORRECTNESS RULES ---------- #
+  - id: debug-printk-in-production
+    patterns:
+      - pattern-inside: printk(...);
+      - pattern-not-regex: \w* \w* \".*\".*
+    message: >-
+      Found printk used without the macros for kernel messages (debugging ?)
+      Informational reminder to remove those printk statements / fix them.
+    languages: [c]
+    severity: INFO
+
+  - id: printk-missing-newline
+    patterns:
+      - pattern-inside: printk(...)
+      - pattern-not-regex: .*\\n.*
+    message: >-
+      Found printk with missing newline. Printk statements without newline are not printed
+      out until the next printk that has a newline.
+      Please add the newline in the printed string.
+    languages: [c]
+    severity: INFO
