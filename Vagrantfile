@@ -32,8 +32,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider "libvirt" do |v|
     v.memory = "4096"
     v.cpus = "2"
-
-    config.vm.synced_folder ".", "/vagrant", type: "nfs", nfs_udp: false, nfs_version: 4
+    v.vm.synced_folder ".", "/vagrant", type: "nfs", nfs_udp: false, nfs_version: 4
   end
 
   config.vm.synced_folder ".", "/vagrant"

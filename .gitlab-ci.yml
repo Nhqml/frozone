@@ -1,7 +1,7 @@
 stages:
     - lint # lint code
     - build # make sure it builds
-    - test # unit tests, e2e test
+    - test # unit tests, e2e test, security tests
     - deploy # build and zip into artifacts
 
 ##### FREEZER JOBS #####
@@ -31,6 +31,16 @@ test-freezer-job:
     script:
         - echo "Tests are only local, cannot run tests from the docker containers"
         - echo true
+
+secu-tests-freezer-job:
+    stage: test
+    image: "python:3.10.3-slim-bullseye"
+    before_script:
+        - pip install semgrep colorama tabulate tabulate[widechars]
+    script:
+        - semgrep --metrics=off --config=security/freezer_module.yaml freezer
+        - semgrep --metrics=off --config=security/freezer_module.yaml freezer -o res.json --json
+        - python3 security/pretty_printer_semgrep.py res.json
 
 ##### CARTO JOBS #####
 
