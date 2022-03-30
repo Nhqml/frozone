@@ -75,7 +75,7 @@ process_t** get_processes(void)
     struct kinfo_proc *kp, **kinfo;
     int what, flag, nentries, lineno, i;
     char errbuf[_POSIX2_LINE_MAX];
-    kd = kvm_openfiles(NULL, NULL, NULL, KVM_NO_FILES, errbuf);
+    kd = kvm_open(NULL, NULL, NULL, KVM_NO_FILES, errbuf);
     kvm_sysctl_only = 1;
 	if (kd == NULL)
     {
