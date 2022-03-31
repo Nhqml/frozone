@@ -30,7 +30,6 @@ void test_get_users(void)
 
 void test_get_processes(void)
 {
-    /*
     process_t** processes = get_processes();
 
     // Should always return something
@@ -61,7 +60,6 @@ void test_get_processes(void)
     }
 
     free(processes);
-    */
 }
 
 void test_get_connections(void)
