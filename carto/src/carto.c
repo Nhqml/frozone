@@ -126,10 +126,13 @@ char** get_files(void)
 
     Array* a = array_new();
 	flags = KVM_NO_FILES;
-
+    puts("1");
 	if ((kd = kvm_openfiles(nlistf, memf, NULL, flags, buf)) == NULL)
+    {
+        puts("2");
 		errx(1, "%s", buf);
-
+    }
+    puts("3");
 	if ((kf = kvm_getfiles(kd, KERN_FILE_BYFILE, 0, sizeof(*kf), &cnt)) == NULL)
 		errx(1, "%s", kvm_geterr(kd));
 
@@ -141,6 +144,6 @@ char** get_files(void)
 	}
 
     array_push(a, NULL);
-    puts("here");
+
     return (char**)array_as_raw(a);
 }
