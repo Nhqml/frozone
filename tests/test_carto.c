@@ -18,6 +18,7 @@ void test_get_users(void)
         utmp_t** users = get_users_openBSD();
     #else
         utmp_t** users = get_users();
+    #endif
 
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(users);
@@ -37,6 +38,7 @@ void test_get_processes(void)
         process_t** processes = get_processes_openBSD();
     #else
         process_t** processes = get_processes();
+    #endif
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(processes);
 
@@ -78,6 +80,7 @@ void test_get_files(void)
         char** files = get_files_openBSD();
     #else
         char** files = get_files();
+    #endif
 
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(files);
