@@ -54,7 +54,7 @@
 #include "users.h"
 #include "utils.h"
 
-utmp_t** get_users(void)
+utmp_t** get_users_openBSD(void)
 {
 	struct utmp utmp;
 
@@ -84,14 +84,12 @@ utmp_t** get_users(void)
     return (utmp_t**)array_as_raw(a);
 }
 
-process_t** get_processes(void)
+process_t** get_processes_openBSD(void)
 {
     char errbuf[_POSIX2_LINE_MAX];
     kvm_t *kernel = kvm_openfiles(NULL, NULL, NULL, KVM_NO_FILES, errbuf);
     int nentries = 0;
-    puts("1");
     struct kinfo_proc *kinfo = kvm_getprocs(kernel, KERN_PROC_ALL, 0, sizeof(struct kinfo_proc), &nentries);
-    puts("2");
     Array* processes = array_with_capacity(nentries + 1);
     int i;
     for (i = 0; i < nentries; ++i) {
@@ -115,9 +113,7 @@ process_t** get_processes(void)
     return (process_t**)array_as_raw(processes);
 }
 
-void get_connections(void) {}
-
-char** get_files(void)
+char** get_files_openBSD(void)
 {
     kvm_t *kd;
 	struct kinfo_file *kf, *kflast;
@@ -135,23 +131,17 @@ char** get_files(void)
     {
 		errx(1, "%s", buf);
     }
-    puts("1");
 	if ((kf = kvm_getfiles(kd, KERN_FILE_BYFILE, 0, sizeof(*kf), &cnt)) == NULL)
     {
-        puts("2");
 		errx(1, "%s", kvm_geterr(kd));
     }
-    puts("3");
 	if (pledge("stdio rpath getpw", NULL) == -1)
     {
-        puts("4");
 		err(1, "pledge");
     }
-    puts("5");
 	for (kflast = &kf[cnt]; kf < kflast; ++kf) {
 		array_push(a, kflast);
 	}
-    puts("6");
 
     array_push(a, NULL);
 
