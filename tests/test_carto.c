@@ -34,7 +34,7 @@ void test_get_users(void)
 
 void test_get_processes(void)
 {
-    #if OpenBSD
+    #ifdef __OpenBSD__
         process_t** processes = get_processes_openBSD();
     #else
         process_t** processes = get_processes();
@@ -76,7 +76,7 @@ void test_get_connections(void)
 
 void test_get_files(void)
 {
-    #if OpenBSD
+    #ifdef __OpenBSD__
         char** files = get_files_openBSD();
     #else
         char** files = get_files();
