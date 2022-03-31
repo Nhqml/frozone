@@ -67,7 +67,7 @@ process_t** get_processes(void)
         process->cwd = proc_readlink(process->pid, "cwd");
         process->root = proc_readlink(process->pid, "root");
 
-        strlcpy(process->cmdline, kp->p_comm, _POSIX2_LINE_MAX);
+        strlcpy(process->cmdline, kinfo[i].p_comm, _POSIX2_LINE_MAX);
 
         array_push(processes, &kinfo[i]);
     }
