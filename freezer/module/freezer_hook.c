@@ -34,7 +34,6 @@
 #endif
 
 #define SYSCALLSLOG    "[freezer][syscalls] "
-#define MAX_SIZE_ARRAY 1024
 
 typedef int (*syscall_wrapper)(struct pt_regs*);
 unsigned long sys_call_table_addr;
@@ -62,56 +61,6 @@ int current_whitelist_file_index = 0;
 
 struct array_uid *whitelist_process[MAX_SIZE_ARRAY];
 int current_whitelist_process_index = 0;
-
-
-int uid_is_in_array(int *array, int uid)
-{
-    int i = 0;
-    for (; i < MAX_SIZE_ARRAY; i++)
-    {
-        if (uid == array[i])
-            return 0;
-    }
-    return -1;
-}
-
-int resource_data_is_in_array(struct array_uid **array_uids, int *index, char *resource_data)
-{
-    int orig_uid = original_getuid(NULL);
-    int cur = 0;
-
-    while (cur < *index)
-    {
-        if (array_uids[cur]->uid == orig_uid)
-        {
-            unsigned int i = 0;
-
-            for (; i < array_uids[cur]->array->size; ++i)
-            {
-                if (strncmp((char*)array_uids[cur]->array->array[i], resource_data, strlen(resource_data)) == 0)
-                {
-                    return 1;
-                }
-            }
-
-            return 0;
-        }
-
-        cur++;
-    }
-    return 0;
-}
-
-void array_uid_dispose(struct array_uid **array, int *index)
-{
-    int cur = 0;
-    while (cur < *index)
-    {
-        array_destroy(array[cur]->array);
-
-        cur++;
-    }
-}
 
 
 /**
@@ -183,12 +132,13 @@ int hooked_execve(struct pt_regs* regs)
     {
         int res = 0;
         char *process_name = NULL;
+        int orig_uid = original_getuid(NULL);
         char __user *process_name_user = (char *)regs->di;
 
         process_name = safe_copy_from_user(process_name_user, NAME_MAX);
         if (process_name != NULL)
         {
-            if (!resource_data_is_in_array(whitelist_process, &current_whitelist_process_index, process_name))
+            if (!resource_data_is_in_array(whitelist_process, &current_whitelist_process_index, process_name, orig_uid))
             {
                 res = -1;
             }
@@ -217,6 +167,7 @@ int hooked_connect(struct pt_regs* regs)
     struct __user sockaddr_in* sk = (struct sockaddr_in*)regs->si;
     struct sockaddr_in* copied_sk = kzalloc(sizeof(sk), GFP_KERNEL);
     char ip_addr[16];
+    int orig_uid = original_getuid(NULL);
 
     if (!copied_sk)
         printk(KERN_INFO SYSCALLSLOG "error while trying to allocate memory of size %lu \n", sizeof(sk));
@@ -234,7 +185,7 @@ int hooked_connect(struct pt_regs* regs)
 
                 printk(KERN_INFO SYSCALLSLOG "ip addr is %s\n", ip_addr);
 
-                if (!resource_data_is_in_array(whitelist_network, &current_whitelist_network_index, ip_addr))
+                if (!resource_data_is_in_array(whitelist_network, &current_whitelist_network_index, ip_addr, orig_uid))
                 {
                     // IP address is not in the whitelist, so block !
                     printk(KERN_INFO SYSCALLSLOG "connect interrupted\n");
@@ -302,10 +253,11 @@ int hooked_write(struct pt_regs* regs)
     if (is_hooked_user(file_uid_array, current_file_index))
     {
         char *pathname = get_path_name(regs->di);
+        int orig_uid = original_getuid(NULL);
 
         // printk(KERN_INFO SYSCALLSLOG "pathname = %s\n", pathname);
 
-        if (!resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, pathname))
+        if (!resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, pathname, orig_uid))
         {
             kfree(pathname);
 
@@ -327,6 +279,7 @@ int hooked_openat(struct pt_regs* regs)
     if (is_hooked_user(sessions_uid_array, current_sessions_index) || is_hooked_user(file_uid_array, current_file_index))
     {
         int res = 0;
+        int orig_uid = original_getuid(NULL);
 
         // safely copy opened_file name from userland to kernelland
         char __user *op_file_user = (char *)regs->si;
@@ -351,7 +304,7 @@ int hooked_openat(struct pt_regs* regs)
             printk(KERN_INFO SYSCALLSLOG "hooked openat for file: %s\n", opened_file);
 
             // check if opened file is not in the whitelist
-            if (res != -1 && !resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, opened_file))
+            if (res != -1 && !resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, opened_file, orig_uid))
             {
                 printk(KERN_INFO SYSCALLSLOG "blocked opening of file %s\n", opened_file);
                 return EACCES;
@@ -362,93 +315,6 @@ int hooked_openat(struct pt_regs* regs)
     }
 
     return (*original_openat)(regs);
-}
-
-int add_uid_to_array(int* array, int *index, unsigned int uid)
-{
-    int cur = 0;
-    if (*index >= MAX_SIZE_ARRAY)
-        return 0;
-
-    while (cur < *index)
-    {
-        if (array[cur] == uid)
-            return 0;
-
-        cur++;
-    }
-
-    // uid not already in array, so add uid
-    array[*index] = uid;
-    *index = *index + 1;
-
-    return 1;
-}
-
-int remove_uid_from_array(int *array, int *index, unsigned int uid)
-{
-    int cur = 0;
-    int is_rm_index = 0;  // false
-
-    if (*index >= MAX_SIZE_ARRAY)
-        return 0;
-
-    while (cur < *index)
-    {
-        if (array[cur] == uid)
-        {
-            is_rm_index = 1;
-            break;
-        }
-
-        cur++;
-    }
-
-    if (is_rm_index == 0)
-        return 0;
-
-    (*index)--;
-
-    while (cur < *index)
-    {
-        array[cur] = array[cur + 1];
-        cur++;
-    }
-
-    return 1;
-}
-
-int add_to_whitelist(struct array_uid **array, int *index, char *resource_data, unsigned int uid)
-{
-    int cur = 0;
-
-    if (*index >= MAX_SIZE_ARRAY)
-        return 0;
-
-    while (cur < *index)
-    {
-        if (array[cur]->uid == uid)
-        {
-            array_push(array[cur]->array, resource_data);
-            return 1;
-        }
-
-        cur++;
-    }
-
-    struct array_uid *new_array_uid = kzalloc(sizeof(struct array_uid), GFP_KERNEL);
-    if (!new_array_uid)
-        return -1;
-
-    new_array_uid->uid = uid;
-    new_array_uid->array = array_new();
-
-    array_push(new_array_uid->array, resource_data);
-
-    array[*index] = new_array_uid;
-    *index = *index + 1;
-
-    return 1;
 }
 
 int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
