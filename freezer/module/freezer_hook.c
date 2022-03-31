@@ -4,8 +4,6 @@
  */
 
 #include "freezer_hook.h"
-#include "array.h"
-
 #include <asm/ptrace.h>
 #include <linux/errno.h>
 #include <linux/in.h>
@@ -17,6 +15,7 @@
 #include <linux/socket.h>
 #include <linux/string.h>
 #include <linux/version.h>
+#include "array.h"
 
 
 /* The way we access "sys_call_table" varies as kernel internal changes.
