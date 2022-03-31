@@ -124,6 +124,9 @@ char** get_files(void)
 	int cnt, flags;
 	nlistf = memf = NULL;
 
+    kf = NULL;
+    cnt = 0;
+
     Array* a = array_new();
 	flags = KVM_NO_FILES;
 	if ((kd = kvm_openfiles(nlistf, memf, NULL, flags, buf)) == NULL)
