@@ -30,7 +30,9 @@ void test_get_users(void)
 
 void test_get_processes(void)
 {
+    puts("Before");
     process_t** processes = get_processes();
+    puts("After");
 
     // Should always return something
     //CU_ASSERT_PTR_NOT_NULL(processes);
