@@ -19,9 +19,9 @@
 
 struct netlink_cmd
 {
-    int resource;   // resource to block
-    unsigned int uid;        // user id to block
-    int action;    // block or unblock the resource
+    int resource;       // resource name to work in
+    unsigned int uid;   // user id to work in
+    int action;         // block or unblock or put in whitelist the resource
 };
 
 #endif  //  FREEZER_LIB_RESOURCE_COM_H_

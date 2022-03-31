@@ -57,9 +57,9 @@ static void freezer_recv_msg(struct sk_buff* skb)
     }
 
     // skb, portid, seq, type, payload, flags
-    // put the empty message (with response in the msg.type) on socket buffer
+    // put the empty message (with response in the msg.type) on socket buffer, not in mcast group
     nlh = nlmsg_put(skb_out, 0, 0, freezer_wrapper_res, 0, 0);
-    NETLINK_CB(skb_out).dst_group = 0; // not in mcast group
+    NETLINK_CB(skb_out).dst_group = 0;
 
     // send the message
     res = nlmsg_unicast(nl_sk, skb_out, pid);

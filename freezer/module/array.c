@@ -39,7 +39,6 @@ Array* array_push(Array* a, void* element)
 
         if (a->array == NULL)
             return NULL;
-
     }
 
     a->array[a->size] = element;

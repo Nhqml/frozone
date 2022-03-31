@@ -3,28 +3,41 @@
  * Copyright (C) 2022 Michel San, Styvell Pidoux
  */
 
-#include "user_netlink.h"
 #include <linux/netlink.h>
-#include <sys/socket.h>
+#include <pwd.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pwd.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include <utmpx.h>
+
 #include "resource_com.h"
+#include "user_netlink.h"
 
 #define NETLINK_USER 31
-#define MAX_PAYLOAD 1024 /* maximum payload size*/
+#define MAX_PAYLOAD 1024 /* maximum payload size */
+#define MAX_PASSWD 1024 /* maximum password struct size */
 
 struct sockaddr_nl src_addr, dest_addr;
 struct nlmsghdr *nlh = NULL;
 struct iovec iov;
 struct msghdr msg;
 
-// copy all the src len in the dest even if there is '\0'
+/**
+** \brief Copy all data in the source even if the data is '\0'
+**
+** \param dest Destination memory
+** \param src Source memory
+** \param len Length of the source memory to copy in the destination memory
+** \return The destination memory
+*/
 char* my_exact_copy(char *dest, char*src, size_t len)
 {
+    if (!dest || !src)
+        return NULL;
+
     for (size_t i = 0; i < len; ++i)
     {
         dest[i] = src[i];
@@ -33,13 +46,25 @@ char* my_exact_copy(char *dest, char*src, size_t len)
     return dest;
 }
 
+/**
+** \brief Concatainate all data in the source even if the data is '\0' to the destination
+**
+** \param dest Destination memory
+** \param src Source memory
+** \param len_dest Length of the source memory
+** \param len_src Length of the destination memory
+** \return The new destination memory (different from the one passed in parameters)
+*/
 char* my_exact_new_cat(char *dest, char*src, size_t len_dest, size_t len_src)
 {
-    char *new_dest = malloc(sizeof(char) * (len_dest + len_src));
+    char *new_dest;
 
-    if (new_dest == NULL)
+    if (!dest || !src)
         return NULL;
 
+    new_dest = malloc(sizeof(char) * (len_dest + len_src));
+    if (!new_dest)
+        return NULL;
 
     for (size_t i = 0; i < len_dest; ++i)
     {
@@ -54,16 +79,29 @@ char* my_exact_new_cat(char *dest, char*src, size_t len_dest, size_t len_src)
     return new_dest;
 }
 
-int send_message(int sock_fd, int resource, unsigned int uid, int action, char* resource_data)
+/**
+** \brief Send message to the kernel through a netlink socket for one uid with a specific socket file descriptor
+**
+** \param sock_fd Socket file descriptor of the communication with the kernel
+** \param resource Resource name to work in the kernel land
+** \param uid User uid to work in the kernel land
+** \param action Action to do in th kernel land
+** \param resource_data Resource data to put to the whitelist in kernel land
+** \return bool
+*/
+bool send_message(int sock_fd, int resource, unsigned int uid, int action, char* resource_data)
 {
-    printf("Sending message to kernel\n");
+    int size_resource_data;
+    char *buf;
+    char *dest;
+    char *new_buf;
+
+    // printf("Sending message to kernel\n");
 
     // allocate netlink message structure
     nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
-    if (nlh == NULL)
-    {
-        return -1;
-    }
+    if (!nlh)
+        return false;
 
     // set netlink message structure
     memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
@@ -72,7 +110,7 @@ int send_message(int sock_fd, int resource, unsigned int uid, int action, char* 
     nlh->nlmsg_flags = 0;
     nlh->nlmsg_seq = 0;
 
-    int size_resource_data = 0;
+    size_resource_data = 0;
 
     // set data struct
     struct netlink_cmd data =
@@ -83,26 +121,24 @@ int send_message(int sock_fd, int resource, unsigned int uid, int action, char* 
     };
 
     // add message to the netlink message strcuture
-    char *buf = (char *) &data;
-    char *dest;
+    buf = (char *) &data;
 
-    if (resource_data != NULL)
+    if (resource_data)
     {
         size_resource_data = strlen(resource_data);
-        char *new_buf = my_exact_new_cat(buf, resource_data, sizeof(struct netlink_cmd), size_resource_data);
-
+        new_buf = my_exact_new_cat(buf, resource_data, sizeof(struct netlink_cmd), size_resource_data);
         dest = my_exact_copy(NLMSG_DATA(nlh), new_buf, sizeof(struct netlink_cmd) + size_resource_data);
-        free(new_buf);
+
+        if (new_buf)
+            free(new_buf);
     }
     else
     {
         dest = my_exact_copy(NLMSG_DATA(nlh), buf, sizeof(struct netlink_cmd));
     }
 
-    if (dest == NULL)
-    {
-        return -1;
-    }
+    if (!dest)
+        return false;
 
     // wrap nlh into iov struct to use sendmsg()
     iov.iov_base = (void *)nlh;
@@ -113,21 +149,24 @@ int send_message(int sock_fd, int resource, unsigned int uid, int action, char* 
     msg.msg_iovlen = 1;
 
     // send the message
-    int res_msg = sendmsg(sock_fd, &msg, 0);
-    if (res_msg < 0)
-    {
-        return -1;
-    }
+    if (sendmsg(sock_fd, &msg, 0) < 0)
+        return false;
 
-    return res_msg;
+    return true;
 }
 
+/**
+** \brief Init the socket to communicate with the kernel land
+**
+** \return The socket file descriptor
+*/
 int init_socket()
 {
-    printf("Initializing socket\n");
+    int sock_fd;
+    // printf("Initializing socket\n");
 
     // create socket
-    int sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
+    sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
     if (sock_fd < 0)
         return -1;
 
@@ -137,106 +176,113 @@ int init_socket()
     src_addr.nl_pid = getpid(); /* self pid */
 
     // bind the socket
-    int res_bind = bind(sock_fd, (struct sockaddr *)&src_addr, sizeof(src_addr));
-    if (res_bind < 0)
-    {
+    if (bind(sock_fd, (struct sockaddr *)&src_addr, sizeof(src_addr)) < 0)
         return -1;
-    }
 
     // set the destination address of socket
     memset(&dest_addr, 0, sizeof(dest_addr));
     dest_addr.nl_family = AF_NETLINK;
-    dest_addr.nl_pid = 0; /* For Linux Kernel */
+    dest_addr.nl_pid = 0; /* for Linux Kernel */
     dest_addr.nl_groups = 0; /* unicast */
 
     return sock_fd;
 }
 
-int receive_message(int sock_fd)
+/**
+** \brief Check the kernel response, if the kernel has received our message
+**
+** \param sock_fd Socket file descriptor of the communication with the kernel
+** \return bool
+*/
+bool receive_message(int sock_fd)
 {
-    printf("Receiving message from kernel\n");
+    // printf("Receiving message from kernel\n");
 
     // receive the message
-    ssize_t res_msg = recvmsg(sock_fd, &msg, 0);
-    if (res_msg < 0)
-    {
-        return -1;
-    }
+    if (recvmsg(sock_fd, &msg, 0) < 0)
+        return false;
 
-    printf("Received message payload: %d\n", nlh->nlmsg_type);
+    // printf("Received message payload: %d\n", nlh->nlmsg_type);
 
-    if (nlh->nlmsg_type == NLMSG_DONE)
-    {
-        return res_msg;
-    }
-    else
-    {
-        return -1;
-    }
+    return nlh->nlmsg_type == NLMSG_DONE;
 }
 
-int exit_socket(int sock_fd)
+/**
+** \brief Close the communication between the user land and the kernel alnd with a specify socket
+**
+** \param sock_fd Socket file descriptor of the communication with the kernel
+** \return bool
+*/
+bool exit_socket(int sock_fd)
 {
-    printf("Exiting socket\n");
-    if (nlh != NULL)
-    {
+    // printf("Exiting socket\n");
+
+    if (nlh)
         free(nlh);
-    }
 
     // close socket
-    return close(sock_fd);
+    if (close(sock_fd) < 0)
+        return false;
+
+    return true;
 }
 
-int send_socket_msg(int resource, unsigned int uid, int action, char* resource_data)
+bool send_socket_msg(int resource, unsigned int uid, int action, char* resource_data)
 {
     int sock_fd = init_socket();
     if (sock_fd < 0)
     {
-        return -1;
+        return false;
     }
 
-    int bytes_send = send_message(sock_fd, resource, uid, action, resource_data);
-    if (bytes_send < 0)
+    if (!send_message(sock_fd, resource, uid, action, resource_data))
     {
         exit_socket(sock_fd);
-        return -1;
+        return false;
     }
 
-    int bytes_received = receive_message(sock_fd);
-    if (bytes_received < 0)
+    if (!receive_message(sock_fd))
     {
         exit_socket(sock_fd);
-        return -1;
+        return false;
     }
 
-    return exit_socket(sock_fd);
+    if (!exit_socket(sock_fd))
+        return false;
+
+    return true;
 }
 
-int send_socket_msg_except_uid(int resource, unsigned int uid, int action, char* resource_data)
+bool send_socket_msg_except_uid(int resource, unsigned int uid, int action, char* resource_data)
 {
+    struct passwd password;
     struct passwd *p;
+    char *buffer;
+    int error;
     struct utmpx* entry;
-    int res = 0;
 
     // Rewind file ptr
     setutxent();
 
     entry = getutxent();
-    while (entry != NULL)
+    while (entry)
     {
-        p = getpwnam(entry->ut_user);
+        buffer = malloc(MAX_PASSWD);
+        if (!buffer)
+            return false;
+
+        error = getpwnam_r(entry->ut_user, &password, buffer, MAX_PASSWD, &p);
+        if (error != 0)
+            return false;
 
         if (p != NULL)
         {
-            printf("For the name %s, the uid is %d\n", entry->ut_user, p->pw_uid);
-
             if (p->pw_uid != uid)
             {
-                res = send_socket_msg(resource, p->pw_uid, action, resource_data);
-                if (res < 0)
+                if (!send_socket_msg(resource, p->pw_uid, action, resource_data))
                 {
                     endutxent();
-                    return -1;
+                    return false;
                 }
             }
         }
@@ -246,5 +292,6 @@ int send_socket_msg_except_uid(int resource, unsigned int uid, int action, char*
 
     // Closes UTMP file
     endutxent();
-    return 1;
+
+    return true;
 }
