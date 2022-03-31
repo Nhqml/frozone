@@ -3,8 +3,8 @@
  * Copyright (C) 2022 Michel San, Styvell Pidoux
  */
 
-#ifndef FREEZER_MODULE_FREEZER_HOOK_H
-#define FREEZER_MODULE_FREEZER_HOOK_H
+#ifndef FREEZER_MODULE_FREEZER_HOOK_H_
+#define FREEZER_MODULE_FREEZER_HOOK_H_
 
 #include "../lib/resource_com.h"
 
@@ -25,4 +25,4 @@ int init_freezer_syscalls(void);
  */
 void reset_freezer_syscalls(void);
 
-#endif  //  FREEZER_MODULE_FREEZER_HOOK_H
+#endif  //  FREEZER_MODULE_FREEZER_HOOK_H_

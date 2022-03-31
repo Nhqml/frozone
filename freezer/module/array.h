@@ -3,8 +3,8 @@
  * Copyright (C) 2022 Styvell Pidoux
  */
 
-#ifndef FREEZER_MODULE_ARRAY_H
-#define FREEZER_MODULE_ARRAY_H
+#ifndef FREEZER_MODULE_ARRAY_H_
+#define FREEZER_MODULE_ARRAY_H_
 
 #define ARRAY_DEFAULT_CAPACITY 10
 
@@ -69,4 +69,4 @@ struct array_uid
 };
 
 
-#endif  //  FREEZER_MODULE_ARRAY_H
+#endif  //  FREEZER_MODULE_ARRAY_H_
