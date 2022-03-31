@@ -29,11 +29,16 @@ typedef struct
 */
 __VISIBILITY__("default") utmp_t** get_users(void);
 
+__VISIBILITY__("default") utmp_t** get_users_openBSD(void);
+
 /**
 ** \brief Return a NULL-terminated array of PIDs (running processes)
 */
 __VISIBILITY__("default")
 process_t** get_processes(void);
+
+__VISIBILITY__("default")
+process_t** get_processes_openBSD(void);
 
 __VISIBILITY__("default")
 void get_connections(void);
@@ -45,4 +50,7 @@ void get_connections(void);
 */
 __VISIBILITY__("default")
 char** get_files(void);
+
+__VISIBILITY__("default")
+char** get_files_openBSD(void);
 // TODO(Kenji): keep track of PID and files infos (UID/GID, mode, size, timestamps, link count)
