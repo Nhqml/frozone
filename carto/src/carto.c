@@ -141,6 +141,6 @@ char** get_files(void)
 	}
 
     array_push(a, NULL);
-
+    puts("here");
     return (char**)array_as_raw(a);
 }
