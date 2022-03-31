@@ -12,69 +12,37 @@
 char *safe_copy_from_user(const char __user *src, unsigned int max_size)
 {
     int res = 0;
-    int final_len = 0;
-    char *tmp_dest = NULL;
+    int copied_len = 0;
     char *dest = NULL;
 
     if (src == NULL)
-    {
         return NULL;
-    }
 
-    tmp_dest = kzalloc(max_size * sizeof(char), GFP_KERNEL);
-    if (tmp_dest == NULL)
-    {
+    dest = kzalloc(max_size * sizeof(char), GFP_KERNEL);
+    if (dest == NULL)
         return NULL;
-    }
 
-    if (strncpy_from_user(tmp_dest, src, sizeof(tmp_dest) * sizeof(char)) <= 0)
-    {
+    copied_len = strncpy_from_user(dest, src, max_size * sizeof(char));
+    if (copied_len <= 0)
         res = -1;
-    }
 
     if (res != -1)
     {
-        int string_len = strnlen(tmp_dest, sizeof(tmp_dest));
-        if (string_len == sizeof(tmp_dest) && tmp_dest[string_len] != '\0')
+        if (copied_len == max_size - 1)  // strncpy_from_user returns length EXCLUDING trailing NULL byte
         {
-            // user string is not NUL terminated, so we have to do it
-            final_len = string_len + 1;
-            dest = krealloc(dest, final_len, GFP_KERNEL);
-            if (dest != NULL)
-            {
-                dest[final_len] = '\0';  // NUL terminate the string
-            }
-            else
-            {
-                res = -1;
-            }
+            // user string is not NULL terminated, so we have to do it
+            dest[copied_len] = '\0';
         }
         else
         {
-            // user string is already NUL terminated
-            final_len = string_len;
-        }
-    }
-
-    if (res != -1)
-    {
-        dest = kzalloc(final_len, GFP_KERNEL);
-        if (dest != NULL)
-        {
-            if (strncpy(dest, tmp_dest, sizeof(dest) * sizeof(char)) == NULL)
-            {
+            // user string is already NULL terminated, shrinking allocated memory
+            dest = krealloc(dest, copied_len + 1, GFP_KERNEL);
+            if (!dest)
                 res = -1;
-            }
-        }
-        else
-        {
-            res = -1;
         }
     }
 
     // cleaning
-    kfree(tmp_dest);
-
     if (res == 0)
     {
         return dest;
