@@ -17,11 +17,22 @@ lint-freezer-job:
     script:
         - "cpplint --recursive --linelength=120 --filter=-build/include_subdir,-readability/casting,-whitespace/braces,-whitespace/newline,-runtime/int,-readability/todo freezer"
 
-build-freezer-job:
+# build for kernel v5.4 on Ubuntu 20.04
+build-freezer-job-v5.4:
     stage: build
     image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
     variables:
         KERNEL_VERSION: 5.4.0-104-generic # used to compile lkm on that specific version
+        IS_GITLAB_JOB: 1
+    script:
+        - meson build && meson compile -C build
+
+#build for kernel 5.11 on Ubuntu 21.04
+build-freezer-job-v5.11:
+    stage: build
+    image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu2104/gcc
+    variables:
+        KERNEL_VERSION: 5.11.0-49-generic # used to compile lkm on that specific version
         IS_GITLAB_JOB: 1
     script:
         - meson build && meson compile -C build

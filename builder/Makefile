@@ -6,7 +6,7 @@ REGISTRY_PASSWORD := $$(grep "password" .env | cut -d':' -f2)
 REGISTRY_BASE_IMAGE := $(REGISTY_URL)/kenji.gaillac/frozone
 
 # Append more OSes here
-OS_LIST := ubuntu
+OS_LIST := ubuntu ubuntu2104
 
 login:
 	@docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} ${REGISTY_URL}
