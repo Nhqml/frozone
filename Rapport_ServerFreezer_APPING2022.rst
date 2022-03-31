@@ -28,7 +28,7 @@ Introduction
 ============
 
 
-L’objectif du projet FREEZER est de développer un démon configurable de cartographie d’une machine Linux (serveur, PC utilisateur, serveur embarqué type Raspberry Pi) qui permette de geler la configuration de cette machine, c’est-à-dire d’empêcher la création de nouvelles ressources (processus, connexion réseau, ouverture de fichier, etc.) tout en conservant le comportement existant. Il s'agit en fait de créer une whitelist de ces ressources : fichiers, connexions autorisées, processus sur la machine et de restreindre son utilisation a cette seule whitelist. Il permet également de bloquer une ou plusieur ressources pour un utilisateur ou un ou plusieurs utilisateurs.
+L’objectif du projet FREEZER est de développer un démon configurable de cartographie d’une machine Linux (serveur, PC utilisateur, serveur embarqué type Raspberry Pi) qui permette de geler la configuration de cette machine, c’est-à-dire d’empêcher la création de nouvelles ressources (processus, connexion réseau, ouverture de fichier, etc.) tout en conservant le comportement existant. Il s'agit en fait de créer une whitelist de ces ressources : fichiers, connexions autorisées, processus sur la machine et de restreindre son utilisation a cette seule whitelist. Il permet également de bloquer une ou plusieurs ressources pour un ou plusieurs utilisateurs.
 
  Ce mécanisme va se découper en deux parties distinctes :
 
@@ -420,9 +420,9 @@ Références
 
 Man Linux
 
-https://www.linux.com/news/securing-linux-mandatory-access-controls/
+[https://www.linux.com/news/securing-linux-mandatory-access-controls/]
 
-https://www.kernel.org/
+[https://www.kernel.org/]
 
 [https://syscalls64.paolostivanin.com/]
 
