@@ -57,15 +57,12 @@ process_t** get_processes(void)
     for (i = 0; i < nentries; ++i) {
         process_t* process = xcalloc(1, sizeof(process_t));
         process->pid = kinfo[i]->p_pid;
-        if (stat(path_buf, &process_stat) == 0)
-        {
-            process->uid = kinfo[i]->p_uid;
-            process->gid = kinfo[i]->p_gid;
-            static time_t now;
-            if (!now)
-		        (void)time(&now);
-            process->etime = now - kinfo[i]->p_ustart_sec;
-        }
+        process->uid = kinfo[i]->p_uid;
+        process->gid = kinfo[i]->p_gid;
+        static time_t now;
+        if (!now)
+            (void)time(&now);
+        process->etime = now - kinfo[i]->p_ustart_sec;
         process->exe_path = proc_readlink(process->pid, "exe");
         process->cwd = proc_readlink(process->pid, "cwd");
         process->root = proc_readlink(process->pid, "root");
