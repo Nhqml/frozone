@@ -65,3 +65,13 @@ test-carto-job:
         - meson build
         - meson compile -C build
         - meson test -v -C build 'CUnit - Public' 'CUnit - Carto - Private'
+
+sast-semgrep-carto-job:
+    stage: security
+    image: "python:3.10.3-slim-bullseye"
+    before_script:
+        - pip install semgrep colorama tabulate tabulate[widechars]
+    script:
+        - semgrep --metrics=off --config=security/carto_module.yaml carto
+        - semgrep --metrics=off --config=security/carto_module.yaml freezer -o res.json --json
+        - python3 security/pretty_printer_semgrep.py res.json
