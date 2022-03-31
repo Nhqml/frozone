@@ -1,9 +1,9 @@
 ========================================================================================================================
-Server Freezer: Un demon Linux pour cartographier et geler la configuration d’un OS
+Server Freezer: Un démon Linux pour cartographier et geler la configuration d’un OS
 ========================================================================================================================
 
 
-:Auteurs: Michel San, Styvell Pidoux, Erfan Hormozizadeh, Valentin Seux, Kenji Gaillac, Théophane Wallerich
+:Auteurs: Kenji Gaillac, Erfan Hormozizadeh, Styvell Pidoux, Michel San, Valentin Seux, Théophane Wallerich
 
 
 .. image:: ../img/LSE-logo.png
@@ -21,83 +21,74 @@ Server Freezer: Un demon Linux pour cartographier et geler la configuration d’
 Préambule
 ==========
 
-Ce document contient les principaux éléments relatifs à notre projet de fin d’étude dans le cadre de notre formation en apprentissage à l’EPITA.
-Il contient une brève présentation du sujet ainsi qu’un état de l’art scindé en plusieurs parties. Il contient également les spécifications techniques, la documentation de l’outil développé et enfin une brève conclusion décrivant l’avancement, la maturité du projet et les difficultés rencontrées.
+Ce document contient les principaux éléments relatifs à notre projet de fin d’études dans le cadre de notre formation en apprentissage à l’EPITA.
+Il contient une brève présentation du sujet ainsi qu’un état de l’art scindé en plusieurs parties. Il contient également les spécifications techniques, la documentation de l’outil développé et enfin une conclusion décrivant l’avancement, la maturité du projet et les difficultés rencontrées.
 
 Introduction
 ============
 
 
-L’objectif du projet FREEZER est de développer un démon configurable de cartographie d’une machine (Serveur, mais également PC utilisateur, serveur embarqué type raspberry) qui permette de geler la configuration de cette machine, c’est-à-dire d’empêcher la création de nouvelles actions (processus, connexion réseau, etc) tout en conservant le comportement existant. Il s'agit en fait de créer une whitelist de ressources, fichiers, connexions autorisées sur la machine et de restreindre son utilisation a cette seule whitelist.
+L’objectif du projet FREEZER est de développer un démon configurable de cartographie d’une machine Linux (serveur, PC utilisateur, serveur embarqué type Raspberry Pi) qui permette de geler la configuration de cette machine, c’est-à-dire d’empêcher la création de nouvelles ressources (processus, connexion réseau, ouverture de fichier, etc.) tout en conservant le comportement existant. Il s'agit en fait de créer une whitelist de ces ressources : fichiers, connexions autorisées, processus sur la machine et de restreindre son utilisation a cette seule whitelist.
 
  Ce mécanisme va se découper en deux parties distinctes :
 
-- La cartographie : Permet de lister tous les éléments importants d’une configuration d’une machine spécifique. Il s’agit en quelque sorte de prendre une photo du système d’exploitation à un instant T. Cela permet notamment de définir le fonctionnement standard, légitime d’une machine afin de détecter des divergences par rapport à celle-ci.
+- la cartographie : permet de lister tous les éléments importants d’une configuration d’une machine spécifique. Il s’agit en quelque sorte de prendre un instantané du système d’exploitation, permettant de relever des divergences entre le comportement mesuré et le comportement attendu.
 
-- Le Freezer : Permet de Geler une configuration précise, c’est-à-dire empêcher toutes divergence par rapport à celle-ci en bloquant toute création ou accès de ressource.
-
-====
+- le "freezer" : permet de geler le système en l'état, c’est-à-dire empêcher toute divergence par rapport à la configuration actuelle en bloquant toute création ou accès aux ressources.
 
 Objectifs de la solution
 ========================
 
-Les applications et les objectifs sont multiples étant donne qu'il s'agit d'une lib en deux modules, chaque module pouvant avoir divers usages.
+Les applications et les objectifs sont multiples étant donné qu'il s'agit d'une bibliothèque en deux modules, chaque module pouvant avoir divers usages.
 
 Monitorer le système
 ++++++++++++++++++++
 
+La génération d'un fichier d'information simple et concis permet un d'avoir un aperçu complet de l'activité sur la machine. On pourrait alors imaginer un outil se basant sur notre bibliothèque et qui permettrait de générer des logs de l'activité de la machine. Notez que la bibliothèque ne permet pas le monitoring de performance ou d'état de santé de la machine mais seulement des ressources en cours d'utilisation par celle-ci.
 
 
-La génération d'un fichier d'information simple et concis permet un d'avoir un aperçu complet de l'activité sur la machine. Nous ne traitons pas ici le monitoring de performance ou d'état de sante de la machine mais seulement de l'activité sur celle-ci. On pourrait par exemple automatiser la génération du fichier a intervalles réguliers et gérer son historisation afin de garder des logs clairs de l'activité sur la machine. On pourrait également générer un Dashboard et /ou un système d’alerting basé sur les logs générés.
+Mandatory Access Control: bloquer même l'utilisateur `root`
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
-Mandatory Access Control: Bloquer même le user Root
-++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-La plupart des OS mainstream sont basés sur le modèle DAC (Discretionary Access Control). Cela permet de définir notamment des droits sur des fichiers, un utilisateur possédant un fichier est autorisé à écrire et à modifier les permissions de celui-ci. Cependant il s'agit d'un modèle dit discrétionnaire, c'est à dire qu'il confère le pouvoir à quelqu'un de décider. L'utilisateur root qui possède tous les droits, il n'est pas contraint pas la politique de contrôle d'accès. Cela peut notamment poser problème lors de la compromission d'un système si l'attaquant dispose d'un accès root directement ou s’il a la possibilité d'élever ses privilèges il va pouvoir disposer d'une liberté totale sur le système.
+La plupart des OS mainstream sont basés sur le modèle DAC (Discretionary Access Control). Cela permet de définir notamment des droits sur des fichiers, un utilisateur possédant un fichier est autorisé à écrire et à modifier les permissions de celui-ci. Cependant il s'agit d'un modèle dit discrétionnaire, c'est-à-dire qu'il confère le pouvoir à quelqu'un de décider. L'utilisateur `root` qui possède tous les droits, il n'est pas contraint pas la politique de contrôle d'accès. Cela peut notamment poser problème lors de la compromission d'un système si l'attaquant dispose d'un accès `root` directement ou s’il a la possibilité d'élever ses privilèges il va pouvoir disposer d'une liberté totale sur le système.
 
 Il existe un autre modèle, qui viens seulement en tant que surcouche de l'OS que l'on appel MAC (Mandatory Access Control) qui permet de renforcer la politique de sécurité. Les contrôle d'accès y sont obligatoires, même l'utilisateur root ne peut les contourner. Une fois que la politique est en place, les utilisateurs ne peuvent pas la modifier même s’ils ont les privilèges root. Les protections sont indépendantes des propriétaires.
 
+Évidemment il y a toujours un moyen de bypass cette solution pour qui voudrait vraiment le faire, mais cela force l'attaquant a réévaluer sa méthode d'attaque, l'accès root n'étant pas synonyme de plus haut niveau de privilège il s'agit d'un utilisateur comme les autres.
 
-Evidemment il y a toujours un moyen de Bypass cette solution pour qui voudrait vraiment le faire, mais cela force l'attaquant a réévaluer sa méthode d'attaque, l'accès root n'étant pas synonyme de plus haut niveau de privilège il s'agit d'un utilisateur comme les autres.
-
-A l'origine le renforcement des politiques de contrôle d'accès a été largement démocratise par le projet SELinux conçu par la NSA et confie à la communauté open source en 2000.
+A l'origine le renforcement des politiques de contrôle d'accès a été largement démocratisé par le projet SELinux conçu par la NSA et confié à la communauté open source en 2000.
 
 
 Mitiger une attaque
 +++++++++++++++++++
 
-Notre module kernel peut egallement permetre de bloquer des ressources specifiques independemment, ce qui peut permettre de mitiger une attaque en temps reel. En bloquant toutes les connexions de la machine pour rompre la connexion avec un éventuel serveur de controle C2C par exemple.
+Notre module kernel peut également permettre de bloquer des ressources spécifiques indépendamment, ce qui peut permettre de mitiger une attaque en temps réel. En bloquant toutes les connexions de la machine pour rompre la connexion avec un éventuel serveur de commande et de contrôle (C2C) par exemple.
 
 Geler une infrastructure
 ++++++++++++++++++++++++
 
-Cela sert notamment à s'assurer qu'une machine ou une infrastructure de machine suit uniquement un comportement défini. Le développement d'un outil simple et léger se révèle très intéressant s’il peut s'appliquer à du hardware simple tel qu'un rapsberry pi ou de l'iot en général. En particulier car la sécurité est faible dans ce genre d'environnement. Un freeze des connections de matériel iot en général permettrais d'éviter l'utilisation de ce materiel dans des attaques DDOS dites amplifiées par exemple.
-
-====
-
-====
+Cela sert notamment à s'assurer qu'une machine ou une infrastructure de machine suit uniquement un comportement défini. Le développement d'un outil simple et léger se révèle très intéressant s’il peut s'appliquer à du hardware simple tel qu'un Rapsberry Pi ou de l'IoT en général. En particulier car la sécurité est faible dans ce genre d'environnement. Un gel des connections sur du matériel IoT en général permettrais d'éviter l'utilisation de ce matériel dans des attaques DDOS (Déni de Service Distribué).
 
 
-Etat de l’Art
-=================
+État de l’Art
+=============
 
-Ce projet de Démon Linux de cartographie système est un projet intimement lié aux systèmes d’EDR/XDR/IDS et de Monitoring de système. Il est également très similaires à des features proposées par certains patchs du noyau linux pour le renforcement de la sécurité.
+Ce projet de démon Linux de cartographie système est un projet intimement lié aux systèmes d’EDR/XDR/IDS et de monitoring de système. Il est également très similaires en termines de fonctionnalités proposées par certains patchs du noyau Linux pour le renforcement de la sécurité.
 
 Dans un premier temps, la partie cartographie est largement couverte par un ensemble de solutions open sources testées et approuvées depuis un certain nombre d’années.
 
-La partie Freezer quant à elle, reste plus "inexplorée". Il peut s'agir d'un patch de sécurité supplémentaire du noyau linux ou d'un système d’EDR(Endpoint Detection & Response).
+La partie Freezer quant à elle, reste plus "inexplorée". Il peut s'agir d'un patch de sécurité supplémentaire du noyau Linux ou d'un système d’EDR (Endpoint Detection & Response).
 
 Solutions de cartographies
 ++++++++++++++++++++++++++
 
-Tout d'abord la cartographie, il s'agit d'obtenir une vue globale d'un OS, l'état global du système a un instant T.
+Tout d'abord la cartographie, il s'agit d'obtenir une vue globale d'un OS, l'état global du système à un instant T.
 Comme explicité précédemment la cartographie des systèmes Linux est une méthode bien maitrisée et éprouvée depuis des années.
 
 On pense tout de suite aux outils de monitoring comme outils de cartographie, ils peuvent être locaux, de façon à obtenir un aperçu de sa propre machine, ou peuvent fonctionner avec un serveur central permettant d'obtenir une vue global d'un ensemble de machine.
 Néanmoins nous cherchons ici à pouvoir définir ensuite un modèle basé sur la cartographie réalisée, et nous voulons un outil simple et léger, la plupart des solutions de monitoring sont surtout orientées performances et peuvent être lourde à mettre en place.
 
-Le patch linux GR security propose une feature interessante de génération automatique d'ACL (Learning mode) qui permet de lister les differentes utilisation de ressource légitimes afin de créer une whitelist pour la partie bloquage. C'est précisement ce que nous cherchons à faire dans ce projet.
+Le patch Linux GR security propose une fonctionnalité intéressante de génération automatique d'ACL (Learning mode) qui permet de lister les différentes utilisations de ressources légitimes afin de créer une whitelist pour la partie blocage. C'est précisément ce que nous cherchons à faire dans ce projet.
 
 
 Monitoring
@@ -108,40 +99,38 @@ Distribué
 
 Zabbix [https://github.com/zabbix/zabbix](https://github.com/zabbix/zabbix)
 
-C'est une solution de Monitoring open source qui va permettre également une récupération d’informations d'OS multiples, pour créer des dashboards et superviser une infrastructure technique, cette solution est cependant concu majoritairement pour la remontée d'alerte en temps réel.
+C'est une solution de monitoring open source qui va permettre également une récupération d’informations d'OS multiples, pour créer des dashboards et superviser une infrastructure technique, cette solution est cependant conçue majoritairement pour la remontée d'alerte en temps réel.
 
 
 Local
 -----
 
-Il existe également d’autres solutions de monitoring systèmes plus legère fonctionnant en local sur la machine.
+Il existe également d’autres solutions de monitoring système plus légères, fonctionnant en local sur la machine.
 
 Linux Dash (Graphical web interface) : https://github.com/afaqurk/linux-dash
 
 IDS
 ###
 
-Nous pouvons également citer l’ensemble des IDR (Incident Detection System) et EDR .(Endpoint Detection & Response). Des mécanismes de cyberdéfense apparu plus récemment dans l’histoire.
+Nous pouvons également citer l’ensemble des IDR (Incident Detection System) et EDR (Endpoint Detection & Response). Des mécanismes de cyberdéfense apparus plus récemment dans l’histoire.
 
-Ces deux mécanismes intègrent des solutions de détection de menaces dit ‘Anomaly based’ qui vont donc nécessiter un monitoring précis du système protégé et donc une cartographie de celui-ci. Nous effectuons bien la distinction avec les systèmes Signature Based qui ne nécessitent pas de cartographier le système et nous nous concentrons ici sur les IDS dit Host Based. (HIDS)
+Ces deux mécanismes intègrent des solutions de détection de menaces dites 'Anomaly Based' qui vont donc nécessiter un monitoring précis du système protégé et donc une cartographie de celui-ci. Nous effectuons bien la distinction avec les systèmes 'Signature Based' qui ne nécessitent pas de cartographier le système et nous nous concentrons ici sur les IDS dits 'Host Based' (HIDS).
 
 
 Lib
 ###
 
-Psutil : Un outil écrit en Python, il existe un équivalent Rust et c'est une librairie extrêmes complète et facile à utiliser qui couvre tous les besoins de cartographie incluant même les performances et les metrics hardware.
-
-[https://github.com/jmigot-tehtris/psutil]
+Psutil [https://github.com/jmigot-tehtris/psutil] : Un outil écrit en Python, il existe un équivalent Rust et c'est une bibliothèque extrêmement complète et facile à utiliser qui couvre tous les besoins de cartographie incluant même les performances et les metrics hardware.
 
 Extension de Kernel
 ###################
 
-Le module GR Security une extension pour le kernel linux qui en augmente sa sécurité, présente une feature de cartographie et de gel comme nous le verrons dans la partie suivante. Il s’agit d’un patch à appliquer au kernel et qui va lui apporter des features supplémentaires, notamment les Mandatory control list.
-GR Security possède une feature très intéressante qu’ils appellent le Learning Mode et qui permet en analysant l’activité sur une machine de définir une ACL précise et restrictive. C'est en fait une cartographie des ressources permettant la création d'une whitelist utilisée dans la partie "bloquage" de ressource.
+Le module GR Security une extension pour le kernel Linux qui en augmente sa sécurité, présente une fonctionnalité de cartographie et de gel comme nous le verrons dans la partie suivante. Il s’agit d’un patch à appliquer au kernel et qui va lui apporter des fonctionnalités supplémentaires, notamment les Mandatory ACL.
+GR Security possède une fonctionnalité très intéressante qu’ils appellent le Learning Mode et qui permet, en analysant l’activité sur une machine, de définir une ACL précise et restrictive. C'est en fait une cartographie des ressources permettant la création d'une whitelist utilisée dans la partie "blocage" de ressources.
 
 GR Security : [https://github.com/linux-scraping/linux-grsecurity]
 
-Nous pourrions continuer cette liste avec une multitude de solutions utilisant le même concept de cartographie système. Il est relativement facile de trouver des solutions open sources pour ce type d’analyse, nous nous contenterons donc de l’open source pour la partie cartographie.
+Nous pourrions continuer cette liste avec une multitude de solutions utilisant le même concept de cartographie système. Il est relativement facile de trouver des solutions open source pour ce type d’analyse, nous nous contenterons donc de l’open source pour la partie cartographie.
 
 Tableau
 #######
@@ -174,25 +163,24 @@ Tableau
 Solutions de Gel de Configurations
 ++++++++++++++++++++++++++++++++++
 
-La fonction de Freeze est-elle moins explorée, c’est principalement une feature des EDR/XDR, qui permet de contenir une menace lorsque celle-ci est détéctée sur une des machines surveillées. Une « réaction immunitaire”.
-Il peut également s'agir des politiques d'ACL plus pousse permise par des patch du kernel (module kernel).
-
+La fonction de Freeze est-elle moins explorée, c’est principalement une fonctionnalité des EDR/XDR, qui permet de contenir une menace lorsque celle-ci est détectée sur une des machines surveillées. Une "réaction immunitaire".
+Il peut également s'agir des politiques d'ACL plus poussées permise par des patch du kernel (module kernel).
 
 
 
 EDR/XDR
 ########
 
-On peut citer tout d'abord l'outil commercial Crowstrike, et son falcon agent sensor deployable sur un grand nombre d'OS. C'est l'un des leaders actuels en matière d'EDR et de défense active. Il permet des features de gel, ou de contention qui permet de bloquer des ressources ou des connexions.
+On peut citer tout d'abord l'outil commercial Crowdstrike, et son Falcon Agent Sensor déployable sur un grand nombre d'OS. C'est l'un des leaders actuels en matière d'EDR et de défense active. Il permet des fonctionnalités de gel, ou de contention qui permet de bloquer des ressources ou des connexions.
 
-Pour citer un exemple français, l’Open XDR Plateform regroupe un ensemble de solution de cyber sécurité française, pour couvrir l’ensemble des problématiques pour le entreprises, le but étant de concurrencer les géants du secteur. Parmi ses solutions, l’XDR Harfang lab contient un outil de remédiation qui permet d’isoler des machines précises, c’est-à-dire bloquer des connexions réseaux ainsi que d’empêcher la création de nouveaux processus précis. Cette solution est recommandée par l'ANSSI. La solution Thetris est également française(Bordeaux).
+Pour citer un exemple français, l’Open XDR Plateform regroupe un ensemble de solution de cybersécurité françaises, pour couvrir l’ensemble des problématiques pour les entreprises, le but étant de concurrencer les géants du secteur. Parmi ses solutions, l’XDR Harfang lab contient un outil de remédiation qui permet d’isoler des machines précises, c’est-à-dire bloquer des connexions réseaux ainsi que d’empêcher la création de nouveaux processus précis. Cette solution est recommandée par l'ANSSI. La solution Thetris est également française (Bordeaux).
 
-L’étude des features de ses solutions est relativement compliqués, les documentations techniques précises sont relativement rares, majoritairement remplacées par des documents publicitaires/marketing sans réel valeurs techniques et qui obfusque le détail des fonctionnalités. Lorsque l’information n’est pas disponible publiquement nous choisirons le symbole ? dans le tableau suivant.
+L’étude des fonctionnalités de ces solutions est relativement compliqués, les documentations techniques précises sont relativement rares, majoritairement remplacées par des documents publicitaires et marketing sans réelles informations techniques et qui obfusquent le détail des fonctionnalités. Lorsque l’information n’est pas disponible publiquement nous choisirons le symbole '?' dans le tableau suivant.
 
-ACL(Access Control List)
+ACL (Access Control List)
 #############################
 
-C'est une gestion plus poussée des contrôles d'accès que propose le module kernel gr-security ou encore RSBAC. La génération de ces whitelist peut être laissée à l'administrateur, ou génèrée (appris) automatiquement pour gr-security.
+C'est une gestion plus poussée des contrôles d'accès que propose le module kernel gr-security ou encore RSBAC. La génération de ces whitelist peut être laissée à l'administrateur, ou générée (appris) automatiquement pour gr-security.
 
 
 Tableau
@@ -220,7 +208,7 @@ Tableau
 Analyse techniques des éléments de la Cartographie système
 ==========================================================
 
-La cartographie du système va se résumer à la collectes d’informations, on demande au système de nous renvoyer un certain nombre d’informations que l’on va structurer de sorte à obtenir un aperçu complet du système. Cette partie va se résumer dans un premier temps à la création de 3 fonctions C au sein de notre librairie.
+La cartographie du système va se résumer à la collecte d’informations, on demande au système de nous renvoyer un certain nombre d’informations que l’on va structurer de sorte à obtenir un aperçu complet du système. Cette partie va se résumer dans un premier temps à la création de 3 fonctions C au sein de notre bibliothèque.
 
 Liste des ressources à cartographier
 ++++++++++++++++++++++++++++++++++++
@@ -229,7 +217,7 @@ Liste des ressources à cartographier
 Utilisateurs: get_users
 ########################
 
-L’idée ici va être de récupérer la liste des utilisateurs de la machine, connectés ou non.
+L’idée ici va être de récupérer la liste des utilisateurs connectés à la machine.
 
 Commande Linux : w
 
@@ -238,21 +226,23 @@ Arbre de Processus: get_processes
 
 Concernant les processus actifs sur la machine, il est indispensable d’obtenir un arbre structuré contenant l’ensemble des processus lancés et leur provenenance.
 
+TODO(Théo): Pas d'arbre !
+
 Commande Linux : top
 
 Ports locaux ouvert/ Connexion distantes: get_connections
 #########################################################
 
-Il est primordial de connaitre précisément l’ensemble des points d’accès à une machine, c’est-à-dire la liste des port locaux ouvert, et les connexions actives à une machine ainsi que les protocoles utilisés.
+Il est primordial de connaitre précisément l’ensemble des points d’accès à une machine, c’est-à-dire la liste des ports locaux ouvert, et les connexions actives à une machine ainsi que les protocoles utilisés.
 
-Commande Linux : netstat
+Commande Linux : netstat, ss
 
 Listes des fichiers accédés: get_files
 ######################################
 
-Ia liste des fichiers ouverts ainsi que leurs proprietés (proprietaires, droits…) Va permettre de completer l’overview du Système.
+La liste des fichiers ouverts ainsi que leurs propriétés (propriétaires, droits, ...) va permettre de compléter la vue d'ensemble du système.
 
-Schema de la solution
+Schéma de la solution
 ++++++++++++++++++++++
 
 .. image:: ../img/Carto.png
@@ -261,12 +251,12 @@ Schema de la solution
 Impact sur le système d’exploitation
 ++++++++++++++++++++++++++++++++++++
 
-Cette partie est extrêmement légère en terme de charge pour le système d’exploitation car elle n’utilise aucune surcharge particulière et s’occupe uniquement de consulter des informations via des fichiers/mécanismes Linux prévus pour cela. Nous considèrerons comme **négligeable** l’impact de notre module de cartographie sur le Système d’Exploitation.
+Cette partie est extrêmement légère en termes de charge pour le système d’exploitation car elle n’utilise aucune surcharge particulière et s’occupe uniquement de consulter des informations via des fichiers / mécanismes Linux prévus pour cela. Nous considèrerons comme **négligeable** l’impact de notre module de cartographie sur le système d’exploitation.
 
-Analyse technique des solutions de Gel de configuration
+Analyse technique des solutions de gel de configuration
 ===========================================================
 
-Cette Partie va décrire les solutions techniques mises en place afin de permettre un Gel de la configuration de la machine. Elle va être basée sur un principe que l’on appelle Hooking d’appel système pour avoir le maximum de contrôle sur le système d’exploitation hôte. Pour permettre en particulier le bloquage de l’utilisateur root.
+Cette partie va décrire les solutions techniques mises en place afin de permettre un gel de la configuration de la machine. Elle va être basée sur un principe que l’on appelle 'hooking' d’appels systèmes (syscalls) pour avoir le maximum de contrôle sur le système d’exploitation hôte. Pour permettre en particulier le blocage de l’utilisateur `root`.
 
 
 Liste des ressources à geler
@@ -296,7 +286,7 @@ Pour avoir une solution tout à fait fonctionnelle elle doit permettre de déver
 	A noter que cette fonction doit être sécurisée si l’on veut définir une vraie politique de Mandatory Access control, le but est de compliquer la tâche pour l’attaquant même si celui-ci dispose des privilèges root il ne doit pas pouvoir unlock lui-même les ressources.
 
 
-Comparaison de solutions de bloquage
+Comparaison de solutions de blocage
 ++++++++++++++++++++++++++++++++++++
 
 
@@ -311,10 +301,10 @@ Comparaison de solutions de bloquage
 +---------------------+-------------+-------------+--------------+-----------+
 
 
-Hooking d’appel système
-+++++++++++++++++++++++
+Hooking d’appels systèmes
++++++++++++++++++++++++++
 
-Le hooking ou « Contournement » d’appel système va permettre un placement strategique au sein du système d’exploitation. Les syscall faisant le lien entre Userland et KernelLand, détourner/contrôler ceux-ci permet un contrôle total sur les fonctions vitales du système. Cela va donc nous permettre de bloquer différents mécanismes de façon certaine. Meme l'utilisateur root sera contraint par ce bloquage.
+Le hooking ou "contournement" d’appels systèmes va permettre un placement stratégique au sein du système d’exploitation. Les syscalls faisant le lien entre Userland (mode utilisateur) et KernelLand (mode kernel), détourner et contrôler ceux-ci permet un contrôle total sur les fonctions vitales du système. Cela va donc nous permettre de bloquer différents mécanismes de façon certaine. Même l'utilisateur `root` sera contraint par ce blocage.
 
 
 Schéma de la solution retenue
@@ -323,7 +313,7 @@ Schéma de la solution retenue
 .. image:: ../img/hook.png
 	 :scale: 400
 
-Exemple pour le bloquage de connexion:
+Exemple pour le blocage de connexion:
 ######################################
 
 .. image:: ../img/hook1.png
@@ -334,10 +324,10 @@ Impact sur le système d’exploitation
 
 A TESTER
 
-L’impact sur le Système d’exploitation va cette fois-ci être non négligeable puisque l’on va surcharger chaque appel système. Cela va consister dans les fait a un parcours de tableau de taille maximum 1024?? a chaque appel système hooké.
+L’impact sur le système d’exploitation va cette fois-ci être non négligeable puisque l’on va surcharger chaque appel système. Cela va consister dans les faits a un parcours de tableau de taille maximum 1024?? a chaque appel système hooké.
 
 
-
+TODO(Théo): virer la partie doc ?
 Documentation Frozone
 ======================
 
@@ -359,16 +349,16 @@ carto/include/carto.h : <utmpx.h> not found --> include <utmp.h> , struct utmpx 
 Intégration continue & QA
 =========================
 
-Nous avons mis en place une pipeline de developpement sur gitlab utilisant plusieurs technologies :
+Nous avons mis en place une pipeline de développement sur GitLab utilisant plusieurs technologies :
 
 .. image:: ../img/hook2.png
 	 :scale: 400
 
 - Import des différents modules via Docker
-- Analyse static de code cpplint
-- Build du code C via meson sous Ubuntu 22.04
-- SAST avec semgrep et des regles basic de sécurité pour détecter des simples cas de buffer overflow ou d'injection de code.
-- Test Unitaires CUnit
+- Analyse statique de code (`cpplint`)
+- Compilation du code C via `meson`
+- SAST avec semgrep et des règles basiques de sécurité pour détecter des simples cas de buffer overflow (dépassement de tampon) ou d'injection de code
+- Test Unitaires `CUnit`
 
 
 Projet
@@ -379,30 +369,24 @@ Cette partie décrit l'organisation et terme de ressource et de temps ainsi que 
 Organisation
 +++++++++++++
 
-- Michel San: gestion de la pipeline Gitlab + Vagrant / Dev Freezer
-
-- Styvell Pidoux: Dev Freezer
-
-- Kenji Gaillac: Partie Cartographie
-
-- Valentin Seux: Dev Cartographie
-
-- Erfan Hormozizadeh: Portage OpenBsd
-
-- Theophane Wallerich: Gestion de projet, redaction rapport / Test de performances
+- Michel San : gestion de la pipeline Gitlab, Vagrant, Dev freezer
+- Styvell Pidoux : Dev freezer
+- Kenji Gaillac : Dev cartographie
+- Valentin Seux : Dev cartographie
+- Erfan Hormozizadeh : Portage OpenBSD
+- Théophane Wallerich : Gestion de projet, rédaction rapport, tests de performances
 
 Les developpeurs se chargent d'écrire les test unitaires/fonctionnelles concernant leur partie.
 
-Etat d’avancement
+État d’avancement
 +++++++++++++++++
 
 Le projet contient a l'heure actuelle.
 
-Une solution fonctionnelle sous Ubuntu 20.04:
+Une solution fonctionnelle sous Ubuntu 20.04 :
 
-- Une api de 4 fonctions permettant de generer un fichier contenant la cartographie du systeme
-
-- Un module kernel contenenant des fonctions permeattant de bloquer les syscall relatifs aux ressources (users,process,files,connections) et de debloquer les ressources fonctionnant avec une whiteliste permmettant d'authoriser des utilisations de syscall pour certains utilisateur ou process.
+- Une API de 4 fonctions permettant de générer un fichier contenant la cartographie du système
+- Un module kernel contenant des fonctions permettant de bloquer les syscalls relatifs aux ressources (users, processes, files, connections) et de débloquer les ressources fonctionnant avec une whiteliste permettant d'autoriser des utilisations de syscalls pour certains utilisateur ou processus.
 
 A COMPLETER
 
@@ -411,8 +395,7 @@ Difficultés rencontrées
 +++++++++++++++++++++++
 
 - Utilisation de C pour la partie Userland
-
-- Portage sous OpenBsd du module Kernel
+- Portage sous OpenBSD du module Kernel
 
 A COMPLETER
 
@@ -424,12 +407,12 @@ Remerciements
 +++++++++++++
 
 LSE (Laboratoire de Securité d'EPITA)
-Pierre Parrend pour le suivi "iteratif" et l'orientation technique du projet
+Pierre Parrend pour le suivi continu et l'orientation technique du projet
 
 Licence
 ========
 
-A COMPLETER
+MIT
 
 
 Références
