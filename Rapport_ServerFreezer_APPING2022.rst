@@ -261,39 +261,14 @@ Cette partie est extrêmement légère en termes de charge pour le système d’
 Analyse technique des solutions de gel de configuration
 ===========================================================
 
-Cette partie va décrire les solutions techniques mises en place afin de permettre un gel de la configuration de la machine. Elle va être basée sur un principe que l’on appelle 'hooking' d’appels systèmes (syscalls) pour avoir le maximum de contrôle sur le système d’exploitation hôte. Pour permettre en particulier le blocage de l’utilisateur `root`.
-
-
-Liste des ressources à geler
-++++++++++++++++++++++++++++
-
-TODO(Styvell): Details techniques fonctions de lock + Hook (whitelist)
-
-Lock User
-#########
-
-Lock Process
-############
-
-Lock Write
-##########
-
-Lock Connection
-###############
-
-Unlock
-#######
-
-Pour avoir une solution tout à fait fonctionnelle elle doit permettre de déverrouiller/dégeler une ressource, afin de ne pas paralyser le système.
-
-.. warning::
-
-	A noter que cette fonction doit être sécurisée si l’on veut définir une vraie politique de Mandatory Access control, le but est de compliquer la tâche pour l’attaquant même si celui-ci dispose des privilèges root il ne doit pas pouvoir unlock lui-même les ressources.
+Cette partie va décrire les solutions techniques mises en place afin de permettre un gel de la configuration de la machine. Elle va être basée sur un principe que l’on appelle 'hooking' d’appels systèmes (syscalls) pour avoir le maximum de contrôle sur le système d’exploitation hôte.
 
 
 Comparaison de solutions de blocage
 ++++++++++++++++++++++++++++++++++++
 
+Plusieurs solutions étaient possibles, on a cependant choisi de passer par un module kernel.
+Les différentes options sont détaillées dans le tableau ci-dessous.
 
 +---------------------+-------------+-------------+--------------+-----------+
 | Nom                 | Scope       | Simplicité  | Portabilité  | Contrôle  |
@@ -306,17 +281,80 @@ Comparaison de solutions de blocage
 +---------------------+-------------+-------------+--------------+-----------+
 
 
-Hooking d’appels systèmes
-+++++++++++++++++++++++++
+Liste des ressources à geler
+++++++++++++++++++++++++++++
 
-Le hooking ou "contournement" d’appels systèmes va permettre un placement stratégique au sein du système d’exploitation. Les syscalls faisant le lien entre Userland (mode utilisateur) et KernelLand (mode kernel), détourner et contrôler ceux-ci permet un contrôle total sur les fonctions vitales du système. Cela va donc nous permettre de bloquer différents mécanismes de façon certaine. Même l'utilisateur `root` sera contraint par ce blocage.
+Plusieurs ressources vont pouvoir être gelées via la lib créée. Chacune de ces ressources va pouvoir être gelée et dégelée (lock/unlock).
+En plus de pouvoir geler les ressources pour un utilisateur défini, la lib va pouvoir geler les ressources pour tous les utilisateurs sauf un. Cela permettra par la suite d'avoir un accès sur la machine gelée.
+
+La lib permet également d'ajouter des ressources dans une whitelist, c'est à dire de geler toute une ressource à l'exception de ce qui est ajouté dans la whitelist.
+Ci-dessous, les méthodes nécéssaires à appeler pour lock, unloc, ou ajouter à la whitelist des ressources.
+
+Users
+#########
+
+Pour **LOCK** la création de sessions et la connexion à une session pour **UN** utilisateur : `int freeze_users_uid(unsigned int uid)`
+Pour **UNLOCK** la création de sessions et la connexion à une session pour **UN** utilisateur : `int unfreeze_users_uid(unsigned int uid)`
+
+Pour **LOCK** la création de sessions et la connexion à une session pour **TOUS** les utilisateurs **SAUF UN** : `int freeze_users_except_uid(unsigned int uid)`
+Pour **UNLOCK** la création de sessions et la connexion à une session pour **TOUS** les utilisateurs **SAUF UN** : `int unfreeze_users_except_uid(unsigned int uid)`
+
+Processes
+############
+
+Pour **LOCK** l'exécution des process pour **UN** utilisateur : `int freeze_processes_uid(unsigned int uid)`
+Pour **UNLOCK** l'exécution des process pour **UN** utilisateur : `int unfreeze_processes_uid(unsigned int uid)`
+Pour ajouter à une whitelist un process pour **UN** utilisateur : `int add_process_whitelist(unsigned int uid, char *process_name)`
+
+Pour **LOCK**  l'exécution des process pour **TOUS** les utilisateurs **SAUF UN** : `int freeze_processes_except_uid(unsigned int uid)`
+Pour **UNLOCK** l'exécution des process pour **TOUS** les utilisateurs **SAUF UN** : `int unfreeze_processes_except_uid(unsigned int uid)`
+Pour ajouter à une whitelist un process pour **TOUS** les utilisateurs **SAUF UN** : `int add_process_whitelist_except_uid(unsigned int uid, char *process_name)`
+
+Files
+##########
+
+Pour **LOCK**  l'ouverture et l'écriture de fichiers pour **UN** utilisateur : `int freeze_files_uid(unsigned int uid)`
+Pour **UNLOCK** l'ouverture et l'écriture de fichiers pour **UN** utilisateur : `int unfreeze_files_uid(unsigned int uid)`
+Pour ajouter à une whitelist un nom de fichiers pour **UN** utilisateur : `int add_file_whitelist(unsigned int uid, char *file_path)`
+
+Pour **LOCK**  l'ouverture et l'écriture de fichiers pour **TOUS** les utilisateurs **SAUF UN** : `int freeze_files_except_uid(unsigned int uid)`
+Pour **UNLOCK** l'ouverture et l'écriture de fichiers pour **TOUS** les utilisateurs **SAUF UN** : `int unfreeze_files_except_uid(unsigned int uid)`
+Pour ajouter à une whitelist un nom de fichiers pour **TOUS** les utilisateurs **SAUF UN** : `int add_file_whitelist_except_uid(unsigned int uid, char *file_path)`
+
+Connections
+###############
+
+Pour **LOCK**  les connexions internet via des sockets pour **UN** utilisateur : `int freeze_connections_uid(unsigned int uid)`
+Pour **UNLOCK** les connexions internet via des sockets pour **UN** utilisateur : `int unfreeze_connections_uid(unsigned int uid)`
+Pour ajouter à une whitelist une adresse IP pour **UN** utilisateur : `int add_connection_whitelist(unsigned int uid, char *ipaddr)`
+
+Pour **LOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** : `int freeze_connections_except_uid(unsigned int uid)`
+Pour **UNLOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** : `int unfreeze_connections_except_uid(unsigned int uid)`
+Pour ajouter à une whitelist une adresse IP pour **TOUS** les utilisateurs **SAUF UN** : `int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)`
 
 
-Schéma de la solution retenue
-+++++++++++++++++++++++++++++
+Communication Userland / Kernelland
+++++++++++++++++++++++++++++
+
+La lib étant appelable en mode userland, c'est à dire par un utilisateur, celle-ci doit communiquer avec le kernel pour pouvoir hook le syscalls.
+Cette communication se fait via une socket **netlink**. En userland, la ressource, l'id de l'utilisateur et l'action de l'utilisateur sont donc chargés et préparés à être envoyé au kernel.
+
+Lorsque le kernel reçoit ces informations, il va les interpréter pour préparer le hook du sycall pour un utilisateur.
+Concrètement, ces infos sont stockés côté kernel et lors de l'appel d'un sycall, le kernel vérifiera si le syscall est appelé par un utilisateur dont le freeze doit être fait.
 
 .. image:: ../img/hook.png
 	 :scale: 400
+
+Hooking d’appels systèmes
++++++++++++++++++++++++++
+
+Le hooking ou "contournement" d’appels systèmes va permettre un placement stratégique au sein du système d’exploitation. Les syscalls faisant le lien entre Userland et Kernelland, détourner et contrôler ceux-ci permet un contrôle total sur les fonctions vitales du système. Cela va donc nous permettre de bloquer différents mécanismes de façon certaine. Même l'utilisateur `root` pourra contraint par ce blocage.
+
+A chaque syscall, une vérification va être faite pour savoir si le user doit avoir le comportement classique du syscall ou si celui-ci doit être modifié.
+Si l'utilisateur est dans la liste des utilisateurs dont le comportement du syscall doit être modifié, alors une deuxième vérification est effective.
+Cette vérification permet de savoir si les données qui composent le syscall sont dans la whitelist associée.
+Si c'est le cas, alors le comportement du syscall ne sera pas changé, sinon il sera modifié et ne fera absolument rien. Cette ressource est donc freeze.
+
 
 Exemple pour le blocage de connexion:
 ######################################
@@ -326,7 +364,6 @@ Exemple pour le blocage de connexion:
 
 Impact sur le système d’exploitation
 ++++++++++++++++++++++++++++++++++++
-
 
 
 L’impact sur le système d’exploitation va cette fois-ci être non négligeable puisque l’on va surcharger chaque appel système. Cela va consister dans les faits a un parcours de tableau a chaque appel système hooké. Les surcharge des appels systèmes read et write en particulier risque d'avoir un impact sur les temps de réponses du système.
