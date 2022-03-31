@@ -48,16 +48,13 @@ utmp_t** get_users(void)
 
 process_t** get_processes(void)
 {
-    puts("1");
     char errbuf[_POSIX2_LINE_MAX];
     kvm_t *kernel = kvm_openfiles(NULL, NULL, NULL, KVM_NO_FILES, errbuf);
-    puts("2");
+    println("%p\n", kernel);
     int nentries = 0;
     struct kinfo_proc *kinfo = kvm_getprocs(kernel, KERN_PROC_ALL, 0, sizeof(struct kinfo_proc), &nentries);
-    puts("3");
     Array* processes = array_with_capacity(nentries + 1);
     int i;
-    puts("4");
     for (i = 0; i < nentries; ++i) {
         process_t* process = xcalloc(1, sizeof(process_t));
         process->pid = kinfo[i].p_pid;
