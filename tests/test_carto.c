@@ -24,9 +24,6 @@ void test_get_users(void)
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(users);
 
-    // Should never return an empty array (since at least one user should be logged in)
-    CU_ASSERT_PTR_NOT_NULL(*users);
-
     for (utmp_t** user = users; *user != NULL; ++user)
         free(*user);
 
