@@ -8,7 +8,7 @@
 #else
     #include <linux/limits.h>
     #include <error.h>
-#end
+#endif
 
 #include "utils.h"
 
