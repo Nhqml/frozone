@@ -24,6 +24,7 @@
     #include <err.h>
 #endif
 
+#ifndef __OpenBSD__
 utmp_t** get_users(void)
 {
     // Rewind file ptr
@@ -172,7 +173,8 @@ file_t** get_files(void)
 
     return (file_t**)array_as_raw(a);
 }
-
+#endif
+#ifdef __OpenBSD__
 utmp_t** get_users_openBSD(void)
 {
 	struct utmp utmp;
@@ -266,3 +268,4 @@ char** get_files_openBSD(void)
 
     return (char**)array_as_raw(a);
 }
+#endif
