@@ -63,4 +63,4 @@ test-carto-job:
     script:
         - meson build
         - meson compile -C build
-        - meson test -v -C build
+        - meson test -v -C build 'CUnit - Public' 'CUnit - Carto - Private'

@@ -12,4 +12,4 @@ cunit_tests_private = executable(
   ],
 )
 
-test('CUnit - Private', cunit_tests_private)
+test('CUnit - Carto - Private', cunit_tests_private)
