@@ -9,8 +9,10 @@ cunit_tests_public = executable(
   link_with: carto_lib,
   dependencies: [
     dependency('cunit'),
-    dependency('kvm')
   ],
+  c_args : [
+      '-lkvm'
+  ]
 )
 
 test('CUnit - Public', cunit_tests_public)
