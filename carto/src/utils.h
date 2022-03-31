@@ -4,7 +4,7 @@
     #include <err.h>
 #else
     #include <error.h>
-#end
+#endif
 
 #include <errno.h>
 #include <limits.h>
