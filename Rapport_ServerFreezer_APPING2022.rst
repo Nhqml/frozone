@@ -50,7 +50,7 @@ La génération d'un fichier d'information simple et concis permet un d'avoir un
 Mandatory Access Control: bloquer même l'utilisateur `root`
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-La plupart des OS mainstream sont basés sur le modèle DAC (Discretionary Access Control). Cela permet de définir notamment des droits sur des fichiers, un utilisateur possédant un fichier est autorisé à écrire et à modifier les permissions de celui-ci. Cependant il s'agit d'un modèle dit discrétionnaire, c'est-à-dire qu'il confère le pouvoir à quelqu'un de décider. L'utilisateur `root` qui possède tous les droits, il n'est pas contraint pas la politique de contrôle d'accès. Cela peut notamment poser problème lors de la compromission d'un système si l'attaquant dispose d'un accès `root` directement ou s’il a la possibilité d'élever ses privilèges il va pouvoir disposer d'une liberté totale sur le système.
+La plupart des OS mainstream sont basés sur le modèle DAC (Discretionary Access Control). Cela permet de définir notamment des droits sur des fichiers, un utilisateur possédant un fichier est autorisé à écrire et à modifier les permissions de celui-ci. Cependant il s'agit d'un modèle dit discrétionnaire, c'est-à-dire qu'il confère le pouvoir à quelqu'un de décider. L'utilisateur `root`, qui possède tous les droits, n'est pas contraint pas la politique de contrôle d'accès. Cela peut notamment poser problème lors de la compromission d'un système si l'attaquant dispose d'un accès `root` directement ou s’il a la possibilité d'élever ses privilèges il va pouvoir disposer d'une liberté totale sur le système.
 
 Il existe un autre modèle, qui viens seulement en tant que surcouche de l'OS que l'on appel MAC (Mandatory Access Control) qui permet de renforcer la politique de sécurité. Les contrôle d'accès y sont obligatoires, même l'utilisateur root ne peut les contourner. Une fois que la politique est en place, les utilisateurs ne peuvent pas la modifier même s’ils ont les privilèges root. Les protections sont indépendantes des propriétaires.
 
@@ -120,7 +120,7 @@ Ces deux mécanismes intègrent des solutions de détection de menaces dites 'An
 Lib
 ###
 
-Psutil [https://github.com/jmigot-tehtris/psutil] : Un outil écrit en Python, il existe un équivalent Rust et c'est une bibliothèque extrêmement complète et facile à utiliser qui couvre tous les besoins de cartographie incluant même les performances et les metrics hardware.
+Psutil [https://github.com/jmigot-tehtris/psutil] : C'est un outil écrit en Python (il existe un équivalent Rust). C'est une bibliothèque extrêmement complète et facile à utiliser qui couvre tous les besoins de cartographie incluant même les performances et les metrics hardware.
 
 Extension de Kernel
 ###################
@@ -131,6 +131,7 @@ GR Security possède une fonctionnalité très intéressante qu’ils appellent 
 GR Security : [https://github.com/linux-scraping/linux-grsecurity]
 
 Nous pourrions continuer cette liste avec une multitude de solutions utilisant le même concept de cartographie système. Il est relativement facile de trouver des solutions open source pour ce type d’analyse, nous nous contenterons donc de l’open source pour la partie cartographie.
+Un des membres du groupe travaille chez Interact Software, qui cartographie également des ressources sous Windows, nous le rajoutons donc à cette liste mȇme si ce n'est pas de l'open source.
 
 Tableau
 #######
@@ -154,7 +155,7 @@ Tableau
 +-----------------------------+--------------------------------+--------------------+-------------------------+------------------+------------------------------+-----------------------------+------------------+-----------------------------------------+----------------------------+
 | what_file                   | Utility                        | Python             | OPEN                    | F                | V                            | F                           | V                |                                         | V                          |
 +-----------------------------+--------------------------------+--------------------+-------------------------+------------------+------------------------------+-----------------------------+------------------+-----------------------------------------+----------------------------+
-| Interact Software           | Supervision distribuée         | C++/C#             | COM                     | V                | V                            | V                           | F                |                                         | F(Windows)                 |
+| Interact Software           | Supervision distribuée         | C++/C#             | COM                     | V                | V                            | V                           | F                | Performance + hardware metrics          | F(Windows)                 |
 +-----------------------------+--------------------------------+--------------------+-------------------------+------------------+------------------------------+-----------------------------+------------------+-----------------------------------------+----------------------------+
 
 
@@ -208,7 +209,7 @@ Tableau
 Analyse techniques des éléments de la Cartographie système
 ==========================================================
 
-La cartographie du système va se résumer à la collecte d’informations, on demande au système de nous renvoyer un certain nombre d’informations que l’on va structurer de sorte à obtenir un aperçu complet du système. Cette partie va se résumer dans un premier temps à la création de 3 fonctions C au sein de notre bibliothèque.
+La cartographie du système va se résumer à la collecte d’informations, on demande au système de nous renvoyer un certain nombre d’informations que l’on va structurer de sorte à obtenir un aperçu complet du système. Cette partie va se résumer dans un premier temps à la création de 4 fonctions C au sein de notre bibliothèque.
 
 Liste des ressources à cartographier
 ++++++++++++++++++++++++++++++++++++
@@ -325,7 +326,7 @@ Impact sur le système d’exploitation
 A TESTER
 
 L’impact sur le système d’exploitation va cette fois-ci être non négligeable puisque l’on va surcharger chaque appel système. Cela va consister dans les faits a un parcours de tableau de taille maximum 1024?? a chaque appel système hooké.
-
+TODO(Theo): il faut des chiffres pour mesurer l'impact
 
 TODO(Théo): virer la partie doc ?
 Documentation Frozone
@@ -359,6 +360,7 @@ Nous avons mis en place une pipeline de développement sur GitLab utilisant plus
 - Compilation du code C via `meson`
 - SAST avec semgrep et des règles basiques de sécurité pour détecter des simples cas de buffer overflow (dépassement de tampon) ou d'injection de code
 - Test Unitaires `CUnit`
+TODO(Theo): KUnit
 
 
 Projet
@@ -396,6 +398,7 @@ Difficultés rencontrées
 
 - Utilisation de C pour la partie Userland
 - Portage sous OpenBSD du module Kernel
+- Diificulté de trouver les leaks mémoire en KernelLand
 
 A COMPLETER
 
