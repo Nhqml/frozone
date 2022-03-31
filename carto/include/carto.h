@@ -6,7 +6,12 @@
 #define _GNU_SOURCE
 
 #include <sys/types.h>
-#include <utmp.h>
+
+#ifdef __OpenBSD__
+    #include <utmp.h>
+#else
+    #include <utmpx.h>
+#endif
 
 typedef struct utmp utmp_t;
 
