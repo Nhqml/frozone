@@ -12,6 +12,44 @@
 #include <sys/param.h>
 #include <sys/sysctl.h>
 
+#include <sys/types.h>
+#include <sys/queue.h>
+#include <sys/mount.h>
+#include <sys/stat.h>
+#include <sys/vnode.h>
+#include <sys/socket.h>
+#include <sys/socketvar.h>
+#include <sys/eventvar.h>
+#include <sys/sysctl.h>
+#include <sys/filedesc.h>
+#define _KERNEL /* for DTYPE_* */
+#include <sys/file.h>
+#undef _KERNEL
+
+#include <net/route.h>
+#include <netinet/in.h>
+
+#include <netdb.h>
+#include <arpa/inet.h>
+
+#include <sys/pipe.h>
+
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <kvm.h>
+#include <limits.h>
+#include <nlist.h>
+#include <pwd.h>
+#include <search.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <err.h>
+
 #include "processes.h"
 #include "users.h"
 #include "utils.h"
