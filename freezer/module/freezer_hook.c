@@ -19,7 +19,7 @@
 #include <linux/string.h>
 #include <linux/version.h>
 #include "array.h"
-
+#include "freezer_hook_utils.h"
 
 /* The way we access "sys_call_table" varies as kernel internal changes.
  * Source: https://sysprog21.github.io/lkmpg/#sysfs-interacting-with-your-module
@@ -181,17 +181,22 @@ int hooked_execve(struct pt_regs* regs)
 
     if (is_hooked_user(process_uid_array, current_process_index))
     {
-        char process_name[NAME_MAX] = {0};
+        int res = 0;
+        char *process_name = NULL;
         char __user *process_name_user = (char *)regs->di;
-        unsigned long error = strncpy_from_user(process_name, process_name_user, PATH_MAX);
 
-        if (error > 0)
+        process_name = safe_copy_from_user(process_name_user, NAME_MAX);
+        if (process_name != NULL)
         {
             if (!resource_data_is_in_array(whitelist_process, &current_whitelist_process_index, process_name))
             {
-                return -1;
+                res = -1;
             }
         }
+
+        kfree(process_name);
+        if (res != 0)
+            return res;
     }
 
     return (*original_execve)(regs);
@@ -271,6 +276,7 @@ char *get_path_name(int fd)
         return NULL;
     }
 
+    // TODO(michel1.san): check d_path return value, seems to trigger a NULL POINTER DEREFERENCE
     pathname = d_path(path, tmp, PAGE_SIZE);
 
     dest = kzalloc((strlen(pathname) + 1) * sizeof(char), GFP_KERNEL);
@@ -315,41 +321,44 @@ int hooked_write(struct pt_regs* regs)
     return (*original_write)(regs);
 }
 
+
 int hooked_openat(struct pt_regs* regs)
 {
-    //printk(KERN_INFO SYSCALLSLOG "openat was called\n");
-
-    // block creation of sessions FROM blocked users
-    if (is_hooked_user(sessions_uid_array, current_sessions_index))
+    if (is_hooked_user(sessions_uid_array, current_sessions_index) || is_hooked_user(file_uid_array, current_file_index))
     {
-        const char *passwd_file = "/etc/passwd";
-        char opened_file[NAME_MAX] = {0};
+        int res = 0;
+
+        // safely copy opened_file name from userland to kernelland
         char __user *op_file_user = (char *)regs->si;
-        unsigned long error = strncpy_from_user(opened_file, op_file_user, NAME_MAX);
-        if (error > 0)
+        char *opened_file = safe_copy_from_user(op_file_user, PATH_MAX);
+        if (opened_file == NULL)
+            res = -1;
+
+        // block creation of sessions FROM blocked users
+        if (res != -1 && is_hooked_user(sessions_uid_array, current_sessions_index))
         {
-            if (strncmp(opened_file, passwd_file, NAME_MAX) == 0)
+            const char *passwd_file = "/etc/passwd";
+            if (strncmp(opened_file, passwd_file, sizeof(opened_file)) == 0)
             {
                 // printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
                 return EACCES;
             }
         }
-    }
 
-    // block opening of files for blocked users
-    if (is_hooked_user(file_uid_array, current_file_index))
-    {
-        char opened_file[PATH_MAX] = {0};
-        char __user *op_file_user = (char *)regs->si;
-        unsigned long error = strncpy_from_user(opened_file, op_file_user, PATH_MAX);
-        if (error > 0)
+        // block opening of files for blocked users
+        if (res != -1 && is_hooked_user(file_uid_array, current_file_index))
         {
-            if (!resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, opened_file))
+            printk(KERN_INFO SYSCALLSLOG "hooked openat for file: %s\n", opened_file);
+
+            // check if opened file is not in the whitelist
+            if (res != -1 && !resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, opened_file))
             {
-                // printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
+                printk(KERN_INFO SYSCALLSLOG "blocked opening of file %s\n", opened_file);
                 return EACCES;
             }
         }
+
+        return (*original_openat)(regs);
     }
 
     return (*original_openat)(regs);
