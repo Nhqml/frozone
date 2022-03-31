@@ -291,7 +291,7 @@ int hooked_openat(struct pt_regs* regs)
         if (res != -1 && is_hooked_user(sessions_uid_array, current_sessions_index))
         {
             const char *passwd_file = "/etc/passwd";
-            if (strncmp(opened_file, passwd_file, sizeof(opened_file)) == 0)
+            if (strncmp(opened_file, passwd_file, strlen(opened_file)) == 0)
             {
                 // printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
                 return EACCES;
