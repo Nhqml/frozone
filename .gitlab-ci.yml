@@ -1,8 +1,9 @@
 stages:
-    - lint # lint code
-    - build # make sure it builds
-    - test # unit tests, e2e test, security tests
-    - deploy # build and zip into artifacts
+    - lint      # lint code
+    - build     # make sure it builds
+    - test      # unit tests, e2e test, security tests
+    - security  # SAST, fuzzing (?)
+    - deploy    # build and zip into artifacts
 
 ##### FREEZER JOBS #####
 
@@ -16,11 +17,22 @@ lint-freezer-job:
     script:
         - "cpplint --recursive --linelength=120 --filter=-build/include_subdir,-readability/casting,-whitespace/braces,-whitespace/newline,-runtime/int,-readability/todo freezer"
 
-build-freezer-job:
+# build for kernel v5.4 on Ubuntu 20.04
+build-freezer-job-v5.4:
     stage: build
     image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
     variables:
         KERNEL_VERSION: 5.4.0-104-generic # used to compile lkm on that specific version
+        IS_GITLAB_JOB: 1
+    script:
+        - meson build && meson compile -C build
+
+#build for kernel 5.11 on Ubuntu 21.04
+build-freezer-job-v5.11:
+    stage: build
+    image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu2104/gcc
+    variables:
+        KERNEL_VERSION: 5.11.0-49-generic # used to compile lkm on that specific version
         IS_GITLAB_JOB: 1
     script:
         - meson build && meson compile -C build
@@ -32,8 +44,8 @@ test-freezer-job:
         - echo "Tests are only local, cannot run tests from the docker containers"
         - echo true
 
-secu-tests-freezer-job:
-    stage: test
+sast-semgrep-freezer-job:
+    stage: security
     image: "python:3.10.3-slim-bullseye"
     before_script:
         - pip install semgrep colorama tabulate tabulate[widechars]
@@ -64,3 +76,13 @@ test-carto-job:
         - meson build
         - meson compile -C build
         - meson test -v -C build 'CUnit - Public' 'CUnit - Carto - Private'
+
+sast-semgrep-carto-job:
+    stage: security
+    image: "python:3.10.3-slim-bullseye"
+    before_script:
+        - pip install semgrep colorama tabulate tabulate[widechars]
+    script:
+        - semgrep --metrics=off --config=security/carto_module.yaml carto
+        - semgrep --metrics=off --config=security/carto_module.yaml carto -o res.json --json
+        - python3 security/pretty_printer_semgrep.py res.json

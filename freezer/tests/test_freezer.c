@@ -202,3 +202,25 @@ void test_freeze_whitelist_connections(void)
     CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), 0);        // 1.1.1.1 should work
     CU_ASSERT_EQUAL(run_command(cmd_nok, TEST_UID, TEST_GID), 0);       // 1.0.0.1 should work too
 }
+
+void test_freeze_whitelist_processes(void)
+{
+    char* cmd_ok = "/usr/bin/ls";
+
+    //dummy tests to test that both commands work normally
+    CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), 0);
+
+    // freeze processes
+    CU_ASSERT_EQUAL(freeze_processes_uid(TEST_UID), 0);
+
+    CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), -1);       // ls should not work anymore
+
+    // whitelist ls binary
+    CU_ASSERT_EQUAL(add_process_whitelist(TEST_UID, cmd_ok), 0);
+
+    CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), 0);        // ls should again since it has been whitelisted
+
+    // unfreeze the connections
+    CU_ASSERT_EQUAL(unfreeze_processes_uid(TEST_UID), 0);
+    CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), 0);        // ls should work
+}

@@ -1,0 +1,118 @@
+# The majority of the rules were pasted from https://github.com/returntocorp/semgrep-rules/tree/develop/c/lang/security, thanks !
+
+rules:
+  - id: double-free
+    patterns:
+      - pattern: |
+          free($VAR);
+          ...
+          free($VAR);
+      - pattern-not: |
+          free($VAR);
+          ...
+          $VAR = NULL;
+          ...
+          free($VAR);
+      - pattern-not: |
+          free($VAR);
+          ...
+          $VAR = malloc(...);
+          ...
+          free($VAR);
+    message: >-
+      Variable '$VAR' was freed twice. This can lead to undefined behavior.
+    languages: [c]
+    severity: ERROR
+
+  - id: info-leak-on-non-formated-string
+    message: >-
+      Use %s, %d, %c... to format your variables, otherwise this could leak information.
+    languages: [c]
+    severity: WARNING
+    pattern: printf(argv[$NUM]);
+
+  - id: insecure-use-gets-fn
+    pattern: gets(...)
+    message: >-
+      Avoid 'gets()'. This function does not consider buffer boundaries and can lead
+      to buffer overflows. Use 'fgets()' or 'gets_s()' instead.
+    languages: [c]
+    severity: ERROR
+
+  - id: insecure-use-memset
+    pattern: memset($VAR,...)
+    message: >-
+      Using memset and then deleting that data can cause sensitive information
+      to still be in the buffer. Use **memset_s()** instead.
+    languages: [c]
+    severity: WARNING
+
+  - id: insecure-use-printf-fn
+    message: >-
+      Avoid using user-controlled format strings passed into 'sprintf', 'printf' and
+      'vsprintf'.
+      These functions put you at risk of buffer overflow vulnerabilities through the
+      use of format string exploits.
+      Instead, use 'snprintf' and 'vsnprintf'.
+    languages: [c]
+    severity: WARNING
+    pattern-either:
+      - pattern: |
+          $FUNC($BUFFER, argv[$NUM], ...);
+          ...
+          vsprintf(..., $BUFFER, ...);
+      - pattern: vsprintf(..., argv[$NUM], ...)
+      - pattern: |
+          $FUNC($BUFFER, argv[$NUM], ...);
+          ...
+          sprintf(..., $BUFFER, ...);
+      - pattern: sprintf(...,argv[$NUM],...)
+      - pattern: |
+          $FUNC($BUFFER, argv[$NUM], ...);
+          ...
+          printf(..., $BUFFER, ...);
+      - pattern: printf(...,argv[$NUM],...)
+
+  - id: insecure-use-scanf-fn
+    pattern: scanf(...)
+    message: >-
+      Avoid using 'scanf()'. This function, when used improperly, does not consider
+      buffer boundaries and can lead to buffer overflows. Use 'fgets()' instead
+      for reading input.
+    languages: [c]
+    severity: WARNING
+
+  - id: insecure-use-strcat-fn
+    pattern-either:
+      - pattern: strcat(...)
+      - pattern: strncat(...)
+    message: >-
+      Finding triggers whenever there is a strcat or strncat used.
+      This is an issue because strcat or strncat can lead to buffer overflow vulns.
+      Fix this by using strcat_s instead.
+    languages: [c]
+    severity: WARNING
+
+  - id: insecure-use-string-copy-fn
+    pattern-either:
+      - pattern: strcpy(...)
+      - pattern: strncpy(...)
+    message: >-
+      Finding triggers whenever there is a strcpy or strncpy used.
+      This is an issue because strcpy does not affirm the size of the destination array
+      and strncpy will not automatically NULL-terminate strings.
+      This can lead to buffer overflows, which can cause program crashes
+      and potentially let an attacker inject code in the program.
+      Fix this by using strcpy_s instead (although note that strcpy_s is an
+      optional part of the C11 standard, and so may not be available).
+    languages: [c]
+    severity: WARNING
+
+  - id: insecure-use-strtok-fn
+    pattern: strtok(...)
+    message: >-
+      Avoid using 'strtok()'. This function directly modifies the first argument buffer,
+      permanently erasing the
+      delimiter character. Use 'strtok_r()' instead.
+    languages: [c]
+    severity: WARNING
