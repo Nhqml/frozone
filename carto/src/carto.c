@@ -48,6 +48,7 @@ utmp_t** get_users(void)
 
 process_t** get_processes(void)
 {
+    /*
     char errbuf[_POSIX2_LINE_MAX];
     kvm_t *kernel = kvm_openfiles(NULL, NULL, NULL, KVM_NO_FILES, errbuf);
     int nentries = 0;
@@ -58,6 +59,7 @@ process_t** get_processes(void)
         printf("%s\n", kinfo[i].p_comm);
     }
     return 0;
+    */
 }
 
 void get_connections(void) {}
