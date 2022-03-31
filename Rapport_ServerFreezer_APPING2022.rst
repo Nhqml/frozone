@@ -333,8 +333,8 @@ L’impact sur le système d’exploitation va cette fois-ci être non négligea
 
 TODO(Theophane): Comparaison de perfo de fonctions simples (find) pour trois VM (SANS,MODULE KERNEL SANS WHITELIST, AVEC WHITELIST VIDE/MAX)
 
-Portage OpenBSD
-===============
+OpenBSD
+=======
 
 
 TODO(erfan): Détail portage de la partie carto + Pistes pour la partie Freeze
