@@ -51,13 +51,31 @@ process_t** get_processes(void)
     char errbuf[_POSIX2_LINE_MAX];
     kvm_t *kernel = kvm_openfiles(NULL, NULL, NULL, KVM_NO_FILES, errbuf);
     int nentries = 0;
-    struct kinfo_proc *kinfo = kvm_getprocs(kernel, KERN_PROC_ALL, 0, sizeof(struct kinfo_proc)
-    , &nentries);
+    struct kinfo_proc *kinfo = kvm_getprocs(kernel, KERN_PROC_ALL, 0, sizeof(struct kinfo_proc), &nentries);
+    Array* processes = array_with_capacity(nentries + 1);
     int i;
     for (i = 0; i < nentries; ++i) {
-        printf("%s\n", kinfo[i].p_comm);
+        process_t* process = xcalloc(1, sizeof(process_t));
+        process->pid = kinfo[i]->p_pid;
+        if (stat(path_buf, &process_stat) == 0)
+        {
+            process->uid = kinfo[i]->p_uid;
+            process->gid = kinfo[i]->p_gid;
+            static time_t now;
+            if (!now)
+		        (void)time(&now);
+            process->etime = now - kinfo[i]->p_ustart_sec;
+        }
+        process->exe_path = proc_readlink(process->pid, "exe");
+        process->cwd = proc_readlink(process->pid, "cwd");
+        process->root = proc_readlink(process->pid, "root");
+
+        strlcpy(buf, kp->p_comm, _POSIX2_LINE_MAX);
+
+        array_push(processes, kinfo[i]);
     }
-    return 0;
+    array_push(processes, NULL);
+    return (process_t**)array_as_raw(processes);
 }
 
 void get_connections(void) {}
