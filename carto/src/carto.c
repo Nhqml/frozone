@@ -79,6 +79,9 @@ void get_connections(void) {}
 
 char** get_files(void)
 {
+    uid_t uid;
+    kvm_t *kd;
+
     Array* a = array_new();
 
 	struct kinfo_file *kf, *kflast;
