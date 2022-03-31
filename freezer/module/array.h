@@ -3,8 +3,8 @@
  * Copyright (C) 2022 Styvell Pidoux
  */
 
-#ifndef ARRAY_H
-#define ARRAY_H
+#ifndef FREEZER_MODULE_ARRAY_H
+#define FREEZER_MODULE_ARRAY_H
 
 #define ARRAY_DEFAULT_CAPACITY 10
 
@@ -47,7 +47,7 @@ Array* array_push(Array* a, void* element);
 ** \brief Destroy the array
 **
 ** \warning This does **NOT** free the elements stored in the array! But this will free the whole array as
-*well as the struct
+** well as the struct
 **
 ** \param a The array
 */
@@ -64,9 +64,9 @@ void array_destroy(Array* a);
 
 struct array_uid
 {
-    unsigned int uid; // user id of the array
-    Array *array; // array to store data
+    unsigned int uid;  // user id of the array
+    Array *array;      // array to store data
 };
 
 
-#endif
+#endif  //  FREEZER_MODULE_ARRAY_H

@@ -3,14 +3,15 @@
  * Copyright (C) 2022 Michel San, Styvell Pidoux
  */
 
+#include "user_netlink.h"
 #include <linux/netlink.h>
+#include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
+#include <pwd.h>
 #include <unistd.h>
 #include <utmpx.h>
-#include <pwd.h>
 #include "resource_com.h"
 
 #define NETLINK_USER 31
@@ -37,9 +38,9 @@ char* my_exact_new_cat(char *dest, char*src, size_t len_dest, size_t len_src)
     char *new_dest = malloc(sizeof(char) * (len_dest + len_src));
 
     if (new_dest == NULL)
-        return NULL;   
+        return NULL;
 
-    
+
     for (size_t i = 0; i < len_dest; ++i)
     {
         new_dest[i] = dest[i];
@@ -90,14 +91,14 @@ int send_message(int sock_fd, int resource, unsigned int uid, int action, char* 
         size_resource_data = strlen(resource_data);
         char *new_buf = my_exact_new_cat(buf, resource_data, sizeof(struct netlink_cmd), size_resource_data);
 
-        dest = my_exact_copy(NLMSG_DATA(nlh), new_buf, sizeof(struct netlink_cmd) + size_resource_data); 
-        free(new_buf);  
+        dest = my_exact_copy(NLMSG_DATA(nlh), new_buf, sizeof(struct netlink_cmd) + size_resource_data);
+        free(new_buf);
     }
     else
     {
-        dest = my_exact_copy(NLMSG_DATA(nlh), buf, sizeof(struct netlink_cmd));    
+        dest = my_exact_copy(NLMSG_DATA(nlh), buf, sizeof(struct netlink_cmd));
     }
-    
+
     if (dest == NULL)
     {
         return -1;
@@ -247,4 +248,3 @@ int send_socket_msg_except_uid(int resource, unsigned int uid, int action, char*
     endutxent();
     return 1;
 }
-

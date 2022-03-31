@@ -1,3 +1,7 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Michel San
+ */
 #pragma once
 
 int freezer_ts_init(void);

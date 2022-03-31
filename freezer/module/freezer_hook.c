@@ -446,12 +446,11 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
 
         case NETWORK:
             add_to_whitelist(whitelist_network, &current_whitelist_network_index, resource_data, data->uid);
-            
             printk("size = %d\n", whitelist_network[0]->array->size);
 
             int i = 0;
             for (; i < whitelist_network[0]->array->size; ++i)
-            {                
+            {
                 printk("data =%s\n", (char*)whitelist_network[0]->array->array[i]);
             }
 

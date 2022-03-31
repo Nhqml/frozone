@@ -1,9 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Michel San
+ */
 #include "test_freezer.h"
 
 #include <CUnit/Basic.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "../lib/freezer.h"
@@ -51,7 +55,7 @@ int run_command(char* command, unsigned int uid, unsigned int gid)
     {
         waitpid(child, &status, WUNTRACED | WCONTINUED);
         res = WIFEXITED(status);
-        if (res == TRUE_BOOLEAN) // command terminated normally
+        if (res == TRUE_BOOLEAN)  // command terminated normally
         {
             int exit_code = WEXITSTATUS(status);
 
@@ -71,7 +75,7 @@ int run_command(char* command, unsigned int uid, unsigned int gid)
     }
     else
     {
-        return -1; // fork failed
+        return -1;  // fork failed
     }
 }
 
@@ -83,9 +87,9 @@ int freezer_ts_init(void)
 {
     system("insmod " PATH_TO_MODULE);
     system("useradd " TEST_NAME " -u " TEST_UID_STR);
-    system("echo '" TEST_NAME ":test' | chpasswd" );     // set password for the test account to test
+    system("echo '" TEST_NAME ":test' | chpasswd");     // set password for the test account to test
     system("useradd " BLOCKED_USER_NAME " -u " BLOCKED_USERNAME_UID_STR);
-    system("echo '" BLOCKED_USER_NAME ":test' | chpasswd" );     // set password for the blocked account to test
+    system("echo '" BLOCKED_USER_NAME ":test' | chpasswd");     // set password for the blocked account to test
     return 0;
 }
 

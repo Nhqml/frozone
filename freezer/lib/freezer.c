@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "freezer.h"
 #include "resource_com.h"
 #include "user_netlink.h"
 

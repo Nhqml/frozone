@@ -3,8 +3,8 @@
  * Copyright (C) 2022 Styvell Pidoux
  */
 
-#ifndef FREEZER_H
-#define FREEZER_H
+#ifndef FREEZER_LIB_RESOURCE_COM_H
+#define FREEZER_LIB_RESOURCE_COM_H
 
 // Define resources to block
 #define FILE        1
@@ -24,4 +24,4 @@ struct netlink_cmd
     int action;    // block or unblock the resource
 };
 
-#endif
+#endif  //  FREEZER_LIB_RESOURCE_COM_H
