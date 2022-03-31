@@ -22,13 +22,13 @@ Préambule
 ==========
 
 Ce document contient les principaux éléments relatifs à notre projet de fin d’études dans le cadre de notre formation en apprentissage à l’EPITA.
-Il contient une brève présentation du sujet ainsi qu’un état de l’art scindé en plusieurs parties. Il contient également les spécifications techniques, la documentation de l’outil développé et enfin une conclusion décrivant l’avancement, la maturité du projet et les difficultés rencontrées.
+Il contient une brève présentation du sujet ainsi qu’un état de l’art scindé en plusieurs parties. Il contient également les spécifications techniques de l’outil développé et enfin une conclusion décrivant l’avancement, la maturité du projet et les difficultés rencontrées.
 
 Introduction
 ============
 
 
-L’objectif du projet FREEZER est de développer un démon configurable de cartographie d’une machine Linux (serveur, PC utilisateur, serveur embarqué type Raspberry Pi) qui permette de geler la configuration de cette machine, c’est-à-dire d’empêcher la création de nouvelles ressources (processus, connexion réseau, ouverture de fichier, etc.) tout en conservant le comportement existant. Il s'agit en fait de créer une whitelist de ces ressources : fichiers, connexions autorisées, processus sur la machine et de restreindre son utilisation a cette seule whitelist.
+L’objectif du projet FREEZER est de développer un démon configurable de cartographie d’une machine Linux (serveur, PC utilisateur, serveur embarqué type Raspberry Pi) qui permette de geler la configuration de cette machine, c’est-à-dire d’empêcher la création de nouvelles ressources (processus, connexion réseau, ouverture de fichier, etc.) tout en conservant le comportement existant. Il s'agit en fait de créer une whitelist de ces ressources : fichiers, connexions autorisées, processus sur la machine et de restreindre son utilisation a cette seule whitelist. Il permet également de bloquer une ou plusieur ressources pour un utilisateur ou un ou plusieurs utilisateurs.
 
  Ce mécanisme va se découper en deux parties distinctes :
 
@@ -69,11 +69,15 @@ Geler une infrastructure
 
 Cela sert notamment à s'assurer qu'une machine ou une infrastructure de machine suit uniquement un comportement défini. Le développement d'un outil simple et léger se révèle très intéressant s’il peut s'appliquer à du hardware simple tel qu'un Rapsberry Pi ou de l'IoT en général. En particulier car la sécurité est faible dans ce genre d'environnement. Un gel des connections sur du matériel IoT en général permettrais d'éviter l'utilisation de ce matériel dans des attaques DDOS (Déni de Service Distribué).
 
+Faciliter le travail de Forensic
+++++++++++++++++++++++++++++++++
+
+Dans le cas de la détéction d'une anomalie sur une machine, le gel complet peut facilter le travail de Forensic puisqu'il permet de bloquer la machine dans l'état précis ou elle est au moment du gel. Cela permet de récuper un dump mémoire correspondant a une periode exact dans le temps.
 
 État de l’Art
 =============
 
-Ce projet de démon Linux de cartographie système est un projet intimement lié aux systèmes d’EDR/XDR/IDS et de monitoring de système. Il est également très similaires en termines de fonctionnalités proposées par certains patchs du noyau Linux pour le renforcement de la sécurité.
+Ce projet de démon Linux de cartographie système est un projet intimement lié aux systèmes d’EDR/XDR/IDS et de monitoring de système. Il est également très similaires en termes de fonctionnalités proposées par certains patchs du noyau Linux pour le renforcement de la sécurité.
 
 Dans un premier temps, la partie cartographie est largement couverte par un ensemble de solutions open sources testées et approuvées depuis un certain nombre d’années.
 
@@ -97,7 +101,7 @@ Monitoring
 Distribué
 ---------
 
-Zabbix [https://github.com/zabbix/zabbix](https://github.com/zabbix/zabbix)
+Zabbix [https://github.com/zabbix/zabbix]
 
 C'est une solution de monitoring open source qui va permettre également une récupération d’informations d'OS multiples, pour créer des dashboards et superviser une infrastructure technique, cette solution est cependant conçue majoritairement pour la remontée d'alerte en temps réel.
 
@@ -107,7 +111,7 @@ Local
 
 Il existe également d’autres solutions de monitoring système plus légères, fonctionnant en local sur la machine.
 
-Linux Dash (Graphical web interface) : https://github.com/afaqurk/linux-dash
+Linux Dash (Graphical web interface) : [https://github.com/afaqurk/linux-dash]
 
 IDS
 ###
@@ -214,6 +218,8 @@ La cartographie du système va se résumer à la collecte d’informations, on d
 Liste des ressources à cartographier
 ++++++++++++++++++++++++++++++++++++
 
+TODO(Kenji): Quelques détails technique (retours des fonctions, generation de fichiers)
+
 
 Utilisateurs: get_users
 ########################
@@ -225,9 +231,7 @@ Commande Linux : w
 Arbre de Processus: get_processes
 ##################################
 
-Concernant les processus actifs sur la machine, il est indispensable d’obtenir un arbre structuré contenant l’ensemble des processus lancés et leur provenenance.
-
-TODO(Théo): Pas d'arbre !
+Concernant les processus actifs sur la machine, il est indispensable d’obtenir une liste structuré contenant l’ensemble des processus lancés leur provenenance, leurs droits ou encore les fichiers accédés.
 
 Commande Linux : top
 
@@ -263,7 +267,7 @@ Cette partie va décrire les solutions techniques mises en place afin de permett
 Liste des ressources à geler
 ++++++++++++++++++++++++++++
 
-A COMPLETER
+TODO(Styvell): Details techniques fonctions de lock + Hook (whitelist)
 
 Lock User
 #########
@@ -323,23 +327,18 @@ Exemple pour le blocage de connexion:
 Impact sur le système d’exploitation
 ++++++++++++++++++++++++++++++++++++
 
-A TESTER
 
-L’impact sur le système d’exploitation va cette fois-ci être non négligeable puisque l’on va surcharger chaque appel système. Cela va consister dans les faits a un parcours de tableau de taille maximum 1024?? a chaque appel système hooké.
-TODO(Theo): il faut des chiffres pour mesurer l'impact
 
-TODO(Théo): virer la partie doc ?
-Documentation Frozone
-======================
+L’impact sur le système d’exploitation va cette fois-ci être non négligeable puisque l’on va surcharger chaque appel système. Cela va consister dans les faits a un parcours de tableau a chaque appel système hooké. Les surcharge des appels systèmes read et write en particulier risque d'avoir un impact sur les temps de réponses du système.
 
-Module Carto
-++++++++++++
-
-Module Blocker
-++++++++++++++
+TODO(Theophane): Comparaison de perfo de fonctions simples (find) pour trois VM (SANS,MODULE KERNEL SANS WHITELIST, AVEC WHITELIST VIDE/MAX)
 
 Portage OpenBSD
-+++++++++++++++
+===============
+
+
+TODO(erfan): Détail portage de la partie carto + Pistes pour la partie Freeze
+
 
 freezer/Makefile : lib/modules/build
 
@@ -352,15 +351,12 @@ Intégration continue & QA
 
 Nous avons mis en place une pipeline de développement sur GitLab utilisant plusieurs technologies :
 
-.. image:: ../img/hook2.png
-	 :scale: 400
-
 - Import des différents modules via Docker
 - Analyse statique de code (`cpplint`)
 - Compilation du code C via `meson`
 - SAST avec semgrep et des règles basiques de sécurité pour détecter des simples cas de buffer overflow (dépassement de tampon) ou d'injection de code
 - Test Unitaires `CUnit`
-TODO(Theo): KUnit
+- Tests Unitaires `KUnit`
 
 
 Projet
