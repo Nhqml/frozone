@@ -14,3 +14,4 @@ void test_freeze_open_files(void);
 void test_freeze_open_to_blocked_user(void);
 
 void test_freeze_whitelist_connections(void);
+void test_freeze_whitelist_processes(void);

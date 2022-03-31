@@ -25,6 +25,7 @@ int main()
         || CU_add_test(freezer_ts, "Freezer::files", test_freeze_open_files) == NULL
         || CU_add_test(freezer_ts, "Freezer::sessions", test_freeze_open_to_blocked_user) == NULL
         || CU_add_test(freezer_ts, "Freezer::whitelist_connections", test_freeze_whitelist_connections) == NULL
+        || CU_add_test(freezer_ts, "Freezer::whitelist_processes", test_freeze_whitelist_processes) == NULL
     )
     {
         CU_cleanup_registry();
