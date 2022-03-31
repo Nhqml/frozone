@@ -94,9 +94,9 @@ static inline void* xstrdup(const char* str)
     if (dup_str == NULL)
     {
         #ifdef __OpenBSD__
-            errc(1, errno, "failed to duplicate string", size);
+            errc(1, errno, "failed to duplicate string");
         #else
-            error(1, errno, "failed to duplicate string", size);
+            error(1, errno, "failed to duplicate string");
         #endif
     }
 
