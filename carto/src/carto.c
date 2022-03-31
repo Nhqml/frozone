@@ -82,41 +82,34 @@ char** get_files(void)
 {
     Array* a = array_new();
 
-    Array* pids = get_num_dir_contents("/proc");
+	struct kinfo_file *kf, *kflast;
+	char *memf, *nlistf;
+	char buf[_POSIX2_LINE_MAX];
+	int cnt, flags;
+	nlistf = memf = NULL;
 
-    if (pids == NULL)
-    {
-        array_destroy(a);
-        array_destroy(pids);
-        return NULL;
-    }
+	uid = getuid();
 
-    char proc_pid_path[PATH_MAX], proc_fd_path[PATH_MAX];
-    for (size_t i = 0; i < pids->size; ++i)
-    {
-        if (snprintf(proc_pid_path, PATH_MAX, "/proc/%d/fd", *(int*)pids->array[i]) == -1)
-            errc(1, errno, "sprintf error");
+	flags = KVM_NO_FILES;
 
-        Array* fds = get_num_dir_contents(proc_pid_path);
+	if ((kd = kvm_openfiles(nlistf, memf, NULL, flags, buf)) == NULL)
+		errx(1, "%s", buf);
 
-        if (fds == NULL)
-            continue;
 
-        for (size_t j = 0; j < fds->size; ++j)
-        {
-            if (snprintf(proc_fd_path, PATH_MAX, "%s/%d", proc_pid_path, *(int*)fds->array[j]) == -1)
-                errc(1, errno, "sprintf error");
+	if ((kf = kvm_getfiles(kd, KERN_FILE_BYPID, -1, sizeof(*kf), &cnt)) == NULL)
+		errx(1, "%s", kvm_geterr(kd));
 
-            char* file_name = readlink_str(proc_fd_path);
 
-            if (file_name != NULL)
-                array_push(a, file_name);
-        }
+	if (pledge("stdio rpath getpw", NULL) == -1)
+		err(1, "pledge");
 
-        array_destroy(fds);
-    }
+	find_splices(kf, cnt);
+	fstat_header();
 
-    array_destroy(pids);
+	for (kflast = &kf[cnt]; kf < kflast; ++kf) {
+		fstat_dofile(kf);
+	}
+
 
     array_push(a, NULL);
 
