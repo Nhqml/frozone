@@ -336,15 +336,17 @@ TODO(Theophane): Comparaison de perfo de fonctions simples (find) pour trois VM 
 OpenBSD
 =======
 
+La partie cartographie de ce projet est partiellement compatible avec le système d'exploitation OpenBSD. Ce portage a été réalisé afin d'améliorer la portabilité de ce programme.
+
+Contrairement à debian, OpenBSD ne possède pas (par défaut) le système de fichiers "proc". Ce dernier est le principal outil utilisé dans la partie cartographie sur les systèmes debian. Nous avons donc utilisé des mesures alternatives pour cartographie sur les systèmes BSD.
+
+La fonction "get_users" se comporte quasiement de la même façon sur openBSD que sur linux. La principale différence est l'utilisation sur les systèmes Linux de la bibliothèque "utmpx.h". Cette bibliothèque n'étant pas disponible sur OpenBSD, la bibliothèque "utmp.h" est utilisé.
+
+Le système de fichier "proc" n'étant pas disponible sur OpenBSD, la bibliothèque "kvm.h" est utilisée pour lister les processus et les fichiers. La fonction "kvm_getprocs" de cette bibliothèque permet de récupérer les informations des processus. La fonction "kvm_getfiles" permet de récupérer les informations des fichiers ouverts. La structure "kinfo_proc" de cette bibliothèque permet de stocker les informations du processus. Similairement la structure "kinfo_file" permet de stocker ces informations du fichier.
+
+Considérant les nombreuses différence entre debian et BSD, en ce qui concerne la création et le chargement d'un module kernel, le portage de la partie freeze n'a pas été réalisé. Cela reste une piste intéressante pour les futures développements.
 
 TODO(erfan): Détail portage de la partie carto + Pistes pour la partie Freeze
-
-
-freezer/Makefile : lib/modules/build
-
-carto/src/utils.h : <error.h> not found --> include <err.h> , error() --> err()
-
-carto/include/carto.h : <utmpx.h> not found --> include <utmp.h> , struct utmpx --> struct utmp
 
 Intégration continue & QA
 =========================
