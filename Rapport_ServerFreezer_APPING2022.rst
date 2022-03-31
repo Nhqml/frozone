@@ -18,7 +18,6 @@ Server Freezer: Un demon Linux pour cartographier et geler la configuration d’
 
 
 
-
 Préambule
 ==========
 
@@ -297,7 +296,7 @@ Pour avoir une solution tout à fait fonctionnelle elle doit permettre de déver
 	A noter que cette fonction doit être sécurisée si l’on veut définir une vraie politique de Mandatory Access control, le but est de compliquer la tâche pour l’attaquant même si celui-ci dispose des privilèges root il ne doit pas pouvoir unlock lui-même les ressources.
 
 
-Comparaison de solutions de blocage
+Comparaison de solutions de bloquage
 ++++++++++++++++++++++++++++++++++++
 
 
@@ -315,7 +314,7 @@ Comparaison de solutions de blocage
 Hooking d’appel système
 +++++++++++++++++++++++
 
-Le hooking ou « Contournement » d’appel système va permettre un placement strategique au sein du système d’exploitation. Les syscall faisant le lien entre Userland et KernelLand, détourner/contrôler ceux-ci permet un contrôle total sur les fonctions vitales du système. Cela va donc nous permettre de bloquer différents mécanismes de façon certaine. Meme l'utilisateur root sera contraint par ce blocage.
+Le hooking ou « Contournement » d’appel système va permettre un placement strategique au sein du système d’exploitation. Les syscall faisant le lien entre Userland et KernelLand, détourner/contrôler ceux-ci permet un contrôle total sur les fonctions vitales du système. Cela va donc nous permettre de bloquer différents mécanismes de façon certaine. Meme l'utilisateur root sera contraint par ce bloquage.
 
 
 Schéma de la solution retenue
@@ -324,7 +323,7 @@ Schéma de la solution retenue
 .. image:: ../img/hook.png
 	 :scale: 400
 
-Exemple pour le blocage de connexion:
+Exemple pour le bloquage de connexion:
 ######################################
 
 .. image:: ../img/hook1.png
