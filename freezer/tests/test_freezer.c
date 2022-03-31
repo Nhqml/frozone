@@ -45,8 +45,10 @@ int run_command(char* command, unsigned int uid, unsigned int gid)
     {
         if (uid != 0)
         {
-            setgid(gid);
-            setuid(uid);
+            if (setgid(gid) != 0)
+                return -1;
+            if (setuid(uid) != 0)
+                return -1;
         }
 
         execl("/bin/sh", "sh", "-c", command, (char*)NULL);
@@ -77,6 +79,7 @@ int run_command(char* command, unsigned int uid, unsigned int gid)
     {
         return -1;  // fork failed
     }
+    return -1;  // to remove end of non-void function warning
 }
 
 /* ------------------------------------------------------ */
@@ -85,19 +88,29 @@ int run_command(char* command, unsigned int uid, unsigned int gid)
 
 int freezer_ts_init(void)
 {
-    system("insmod " PATH_TO_MODULE);
-    system("useradd " TEST_NAME " -u " TEST_UID_STR);
-    system("echo '" TEST_NAME ":test' | chpasswd");     // set password for the test account to test
-    system("useradd " BLOCKED_USER_NAME " -u " BLOCKED_USERNAME_UID_STR);
-    system("echo '" BLOCKED_USER_NAME ":test' | chpasswd");     // set password for the blocked account to test
+    if (system("insmod " PATH_TO_MODULE) != 0)
+        return -1;
+    if (system("useradd " TEST_NAME " -u " TEST_UID_STR) != 0)
+        return -1;
+    if (system("echo '" TEST_NAME ":test' | chpasswd") != 0)     // set password for the test account to test
+        return -1;
+    if (system("useradd " BLOCKED_USER_NAME " -u " BLOCKED_USERNAME_UID_STR) != 0)
+        return -1;
+    if (system("echo '" BLOCKED_USER_NAME ":test' | chpasswd") != 0)     // set password for the blocked account to test
+        return -1;
+
     return 0;
 }
 
 int freezer_ts_clean(void)
 {
-    system("rmmod freezer_module");
-    system("userdel " TEST_NAME);
-    system("userdel " BLOCKED_USER_NAME);
+    if (system("rmmod freezer_module") != 0)
+        return -1;
+    if (system("userdel " TEST_NAME) != 0)
+        return -1;
+    if (system("userdel " BLOCKED_USER_NAME) != 0)
+        return -1;
+
     return 0;
 }
 
