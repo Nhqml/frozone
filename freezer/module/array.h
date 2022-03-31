@@ -9,7 +9,6 @@
 #define ARRAY_DEFAULT_CAPACITY 10
 #define MAX_SIZE_ARRAY 1024
 
-
 /**
 ** \brief Dynamic array
 */
@@ -19,6 +18,15 @@ typedef struct
     unsigned int size;
     unsigned int capacity;
 } Array;
+
+/**
+** \brief Array with uid in key
+*/
+struct array_uid
+{
+    unsigned int uid;  // user id of the array
+    Array *array;      // array to store data
+};
 
 /**
 ** \brief Create an array
@@ -62,12 +70,5 @@ void array_free(Array* a);
 ** \param a The array
 */
 void array_destroy(Array* a);
-
-struct array_uid
-{
-    unsigned int uid;  // user id of the array
-    Array *array;      // array to store data
-};
-
 
 #endif  //  FREEZER_MODULE_ARRAY_H_

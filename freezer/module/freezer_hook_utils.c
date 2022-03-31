@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: MIT */
 /*
- * Copyright (C) 2022 Michel San
+ * Copyright (C) 2022 Michel San, Styvell Pidoux
  */
+
 #include "freezer_hook_utils.h"
 #include <linux/uaccess.h>
 #include <linux/kernel.h>
@@ -61,6 +62,7 @@ char *safe_copy_from_user(const char __user *src, unsigned int max_size)
 int add_to_whitelist(struct array_uid **array, int *index, char *resource_data, unsigned int uid)
 {
     int cur = 0;
+    struct array_uid *new_array_uid = NULL;
 
     if (*index >= MAX_SIZE_ARRAY)
         return 0;
@@ -76,7 +78,7 @@ int add_to_whitelist(struct array_uid **array, int *index, char *resource_data, 
         cur++;
     }
 
-    struct array_uid *new_array_uid = kzalloc(sizeof(struct array_uid), GFP_KERNEL);
+    new_array_uid = kzalloc(sizeof(struct array_uid), GFP_KERNEL);
     if (!new_array_uid)
         return -1;
 
@@ -94,10 +96,11 @@ int add_to_whitelist(struct array_uid **array, int *index, char *resource_data, 
 void print_whitelist(struct array_uid **array, int *index)
 {
     int i = 0;
+    int j = 0;
     for (; i < *index; i++)
     {
         printk(KERN_INFO "[debug][print_whitelist][id=%d][uid=%d]\n", i, array[i]->uid);
-        int j = 0;
+
         for (; j < array[i]->array->size; j++)
         {
             printk(KERN_INFO "  [debug][print_whitelist][id:%d] %s\n", j, (char *)array[i]->array->array[j]);
@@ -105,12 +108,7 @@ void print_whitelist(struct array_uid **array, int *index)
     }
 }
 
-/*  ---------------------------------------------------- */
-/*  ---------- ARRAY FUNCTIONS ---------- */
-/*  ---------------------------------------------------- */
-
-
-void array_uid_dispose(struct array_uid **array, int *index)
+void whitelist_dispose(struct array_uid **array, int *index)
 {
     int cur = 0;
     while (cur < *index)
@@ -121,19 +119,7 @@ void array_uid_dispose(struct array_uid **array, int *index)
     }
 }
 
-
-int uid_is_in_array(int *array, int uid)
-{
-    int i = 0;
-    for (; i < MAX_SIZE_ARRAY; i++)
-    {
-        if (uid == array[i])
-            return 0;
-    }
-    return -1;
-}
-
-int resource_data_is_in_array(struct array_uid **array_uids, int *index, char *resource_data, int orig_uid)
+int resource_data_is_in_whitelist(struct array_uid **array_uids, int *index, char *resource_data, int orig_uid)
 {
     int cur = 0;
 
@@ -159,6 +145,20 @@ int resource_data_is_in_array(struct array_uid **array_uids, int *index, char *r
     return 0;
 }
 
+/*  ---------------------------------------------------- */
+/*  ---------- ARRAY FUNCTIONS ---------- */
+/*  ---------------------------------------------------- */
+
+int uid_is_in_array(int *array, int uid)
+{
+    int i = 0;
+    for (; i < MAX_SIZE_ARRAY; i++)
+    {
+        if (uid == array[i])
+            return 0;
+    }
+    return -1;
+}
 
 int add_uid_to_array(int* array, int *index, unsigned int uid)
 {

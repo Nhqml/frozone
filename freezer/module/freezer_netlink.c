@@ -16,21 +16,30 @@
 
 struct sock* nl_sk = NULL;
 
+/**
+** \brief Receive the data from user in userland and act in the kernelland
+**
+** \param skb Buffer of data sent by the user in userland
+** \return bool
+*/
 static void freezer_recv_msg(struct sk_buff* skb)
 {
-    struct nlmsghdr* nlh;
-    struct sk_buff* skb_out;
-    struct netlink_cmd* data;
+    struct nlmsghdr* nlh = NULL;
+    struct sk_buff* skb_out = NULL;
+    struct netlink_cmd* data = NULL;
+    char *res_data = NULL;
+    char *data_as_char_ptr = NULL;
+    char *resource_data = NULL;
     int pid = 0;
     int res = 0;
     int freezer_wrapper_res = 0;
 
     nlh = (struct nlmsghdr*)skb->data;
-    char *data_as_char_ptr = (char*)nlmsg_data(nlh);
+    data_as_char_ptr = (char*)nlmsg_data(nlh);
     data = (struct netlink_cmd*) data_as_char_ptr;
 
-    char *res_data = data_as_char_ptr + sizeof(struct netlink_cmd);
-    char *resource_data = kzalloc(strlen(res_data) + 1, GFP_KERNEL);
+    res_data = data_as_char_ptr + sizeof(struct netlink_cmd);
+    resource_data = kzalloc(strlen(res_data) + 1, GFP_KERNEL);
     if (!resource_data)
         return;
 
@@ -66,6 +75,9 @@ static void freezer_recv_msg(struct sk_buff* skb)
         printk(KERN_INFO NETLINK_LOG "error while sending back to user\n");
 }
 
+/**
+** \brief Load the freezer module
+*/
 static int __init freezer_init(void)
 {
     struct netlink_kernel_cfg cfg = { .input = freezer_recv_msg };
@@ -82,6 +94,9 @@ static int __init freezer_init(void)
     return init_freezer_syscalls();
 }
 
+/**
+** \brief Unload the freezer module
+*/
 static void __exit freezer_exit(void)
 {
     printk(KERN_INFO NETLINK_LOG "exiting freezer module");

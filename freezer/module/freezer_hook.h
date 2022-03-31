@@ -9,20 +9,26 @@
 #include "../lib/resource_com.h"
 
 /**
- * freezer_call_wrapper - Wrapper for calls made in userland to freeze a resource for a user
- * @data: netlink command data set in userland
- * @resource_data: resource data set in userland
- */
+** \brief Wrapper for calls made in userland to act on a resource for a user
+**
+** \param data Dta from netlink set in userland
+** \param resource_data Resource data to put in the whitelist
+** \return bool
+*/
 int freezer_call_wrapper(struct netlink_cmd *data, char* resource_data);
 
 /**
- * init_freezer_syscalls - Initialize the syscall table with our hooked syscalls
- */
+** \brief Initialize the syscall table with our hooked syscalls
+**
+** \return bool
+*/
 int init_freezer_syscalls(void);
 
 /**
- * reset_freezer_syscalls - Reset the syscall table with the original syscalls
- */
+** \brief Reset the syscall table with the original syscalls
+**
+** \return bool
+*/
 void reset_freezer_syscalls(void);
 
 #endif  //  FREEZER_MODULE_FREEZER_HOOK_H_

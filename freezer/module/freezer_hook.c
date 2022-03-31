@@ -62,43 +62,39 @@ int current_whitelist_file_index = 0;
 struct array_uid *whitelist_process[MAX_SIZE_ARRAY];
 int current_whitelist_process_index = 0;
 
-
 /**
- * enable_page_rw - Enable read-write rights on a memory page
- * @ptr: ptr to memory page
- *
- * Used to allow write on the syscall table
- */
-int enable_page_rw(void* ptr)
+** \brief Enable read-write rights on a memory page
+**
+** \param ptr Ptr to memory page
+*/
+void enable_page_rw(void* ptr)
 {
     unsigned int level;
     pte_t* pte = lookup_address((unsigned long)ptr, &level);
 
     if (pte->pte & ~_PAGE_RW)
         pte->pte |= _PAGE_RW;
-
-    return 0;
 }
 
 /**
- * disable_page_rw - Disable read-write rights on a memory page
- * @ptr: ptr to memory page
- *
- * Used to disable write on the syscall table
- */
-int disable_page_rw(void* ptr)
+** \brief Disable read-write rights on a memory page
+**
+** \param ptr Ptr to memory page
+*/
+void disable_page_rw(void* ptr)
 {
     unsigned int level;
     pte_t* pte = lookup_address((unsigned long)ptr, &level);
     pte->pte = pte->pte & ~_PAGE_RW;
-    return 0;
 }
 
 /**
- * is_hooked_user - Check if a user has their syscalls hooked based on its uid
- * @uid: uid of the user to check
- * @return: 1 if user is hooked, else 0
- */
+** \brief Check if a user has their syscalls hooked based on its uid
+**
+** \param array Array of users that have to be hooked
+** \param index Current index of the array
+** \return bool - true if user is hooked, else false
+*/
 int is_hooked_user(int* array, int index)
 {
     int orig_uid = original_getuid(NULL);
@@ -117,13 +113,14 @@ int is_hooked_user(int* array, int index)
 }
 
 /**
- * hooked_execve - Hooked function of the syscall execve
- * @regs: struct used by the kernel syscall wrapper, mandatory, DO NOT REMOVE
- *
- * This function is the hooked version of the syscall execve.
- * It blocks the execution for a specific user.
- * It sends the execution flow back to the original execve.
- */
+** \brief Hooked function of the syscall execve
+**
+** \param regs Struct used by the kernel syscall wrapper
+** \return int - the result of the syscall execve
+** \details This function is the hooked version of the syscall execve.
+** \details It blocks the execution for a specific user.
+** \details It sends the execution flow back to the original execve.
+*/
 int hooked_execve(struct pt_regs* regs)
 {
     // printk(KERN_INFO SYSCALLSLOG "execve was called");
@@ -138,7 +135,8 @@ int hooked_execve(struct pt_regs* regs)
         process_name = safe_copy_from_user(process_name_user, NAME_MAX);
         if (process_name != NULL)
         {
-            if (!resource_data_is_in_array(whitelist_process, &current_whitelist_process_index, process_name, orig_uid))
+            if (!resource_data_is_in_whitelist(whitelist_process,
+                &current_whitelist_process_index, process_name, orig_uid))
             {
                 res = -1;
             }
@@ -153,42 +151,50 @@ int hooked_execve(struct pt_regs* regs)
 }
 
 /**
- * hooked_connect - Hooked function of the syscall connect
- * @regs: struct used by the kernel syscall wrapper, mandatory, DO NOT REMOVE
- *
- * This function is the hooked version of the syscall connect.
- * It blocks all internet connections attempts for blocked users.
- */
+** \brief Hooked function of the syscall connect
+**
+** \param regs Struct used by the kernel syscall wrapper
+** \return int - the result of the syscall execve
+** \details This function is the hooked version of the syscall connect.
+** \details It blocks all internet connections attempts for blocked users.
+*/
 int hooked_connect(struct pt_regs* regs)
 {
+    // printk(KERN_INFO SYSCALLSLOG "connect was called");
+
+    struct __user sockaddr_in* sk = NULL;
+    struct sockaddr_in* copied_sk = NULL;
+    char ip_addr[16];
+    int orig_uid = 0;
+    unsigned long error = 0;
+
     if (!is_hooked_user(socket_uid_array, current_socket_index))
         return (*original_connect)(regs);
 
-    struct __user sockaddr_in* sk = (struct sockaddr_in*)regs->si;
-    struct sockaddr_in* copied_sk = kzalloc(sizeof(sk), GFP_KERNEL);
-    char ip_addr[16];
-    int orig_uid = original_getuid(NULL);
+    sk = (struct sockaddr_in*)regs->si;
+    copied_sk = kzalloc(sizeof(sk), GFP_KERNEL);
+
+    orig_uid = original_getuid(NULL);
 
     if (!copied_sk)
         printk(KERN_INFO SYSCALLSLOG "error while trying to allocate memory of size %lu \n", sizeof(sk));
     else
     {
-        unsigned long error = copy_from_user(copied_sk, sk, sizeof(sk));
+        error = copy_from_user(copied_sk, sk, sizeof(sk));
 
         if (error == 0)
         {
             if (copied_sk->sin_family == AF_INET)  // interrupt only internet connections
             {
-                printk(KERN_INFO SYSCALLSLOG "internet connection detected\n");
+                // printk(KERN_INFO SYSCALLSLOG "internet connection detected\n");
 
                 snprintf(ip_addr, sizeof(ip_addr), "%pIS", copied_sk);
 
-                printk(KERN_INFO SYSCALLSLOG "ip addr is %s\n", ip_addr);
-
-                if (!resource_data_is_in_array(whitelist_network, &current_whitelist_network_index, ip_addr, orig_uid))
+                if (!resource_data_is_in_whitelist(whitelist_network,
+                    &current_whitelist_network_index, ip_addr, orig_uid))
                 {
                     // IP address is not in the whitelist, so block !
-                    printk(KERN_INFO SYSCALLSLOG "connect interrupted\n");
+                    // printk(KERN_INFO SYSCALLSLOG "connect interrupted\n");
                     return -1;
                 }
             }
@@ -202,7 +208,13 @@ int hooked_connect(struct pt_regs* regs)
     return (*original_connect)(regs);
 }
 
-char *get_path_name(int fd)
+/**
+** \brief Retrieve the file name from his file descriptor
+**
+** \param fd File descriptor
+** \return char* - the file name or null if it is not retrieved
+*/
+char* get_path_name(int fd)
 {
     char *tmp;
     char *pathname;
@@ -227,14 +239,12 @@ char *get_path_name(int fd)
         return NULL;
     }
 
-    // TODO(michel1.san): check d_path return value, seems to trigger a NULL POINTER DEREFERENCE
     pathname = d_path(path, tmp, PAGE_SIZE);
 
     dest = kzalloc((strlen(pathname) + 1) * sizeof(char), GFP_KERNEL);
 
     if (!dest)
     {
-        printk(KERN_INFO SYSCALLSLOG "error while trying to allocate memory of size %lu \n", (strlen(pathname) + 1) * sizeof(char));
         kfree(tmp);
         return NULL;
     }
@@ -246,25 +256,29 @@ char *get_path_name(int fd)
     }
 }
 
+/**
+** \brief Hooked function of the syscall write
+**
+** \param regs Struct used by the kernel syscall wrapper
+** \return int - the result of the syscall write
+** \details This function is the hooked version of the syscall write.
+** \details It blocks the wite for a specific user.
+*/
 int hooked_write(struct pt_regs* regs)
 {
-    //printk(KERN_INFO SYSCALLSLOG "write was called\n");
+    // printk(KERN_INFO SYSCALLSLOG "write was called\n");
 
     if (is_hooked_user(file_uid_array, current_file_index))
     {
         char *pathname = get_path_name(regs->di);
         int orig_uid = original_getuid(NULL);
 
-        // printk(KERN_INFO SYSCALLSLOG "pathname = %s\n", pathname);
-
-        if (!resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, pathname, orig_uid))
+        if (!resource_data_is_in_whitelist(whitelist_file, &current_whitelist_file_index, pathname, orig_uid))
         {
             kfree(pathname);
 
             // printk(KERN_INFO SYSCALLSLOG "write interrupted\n");
-
-            // TODO: replace this line with `return 0;` to effectively interrupt the syscall
-            return (*original_write)(regs);
+            return 0;
         }
 
         kfree(pathname);
@@ -273,10 +287,20 @@ int hooked_write(struct pt_regs* regs)
     return (*original_write)(regs);
 }
 
-
+/**
+** \brief Hooked function of the syscall openat
+**
+** \param regs Struct used by the kernel syscall wrapper
+** \return int - the result of the syscall openat
+** \details This function is the hooked version of the syscall openat.
+** \details It blocks the open for a specific user.
+*/
 int hooked_openat(struct pt_regs* regs)
 {
-    if (is_hooked_user(sessions_uid_array, current_sessions_index) || is_hooked_user(file_uid_array, current_file_index))
+    // printk(KERN_INFO SYSCALLSLOG "openat was called");
+
+    if (is_hooked_user(sessions_uid_array, current_sessions_index)
+        || is_hooked_user(file_uid_array, current_file_index))
     {
         int res = 0;
         int orig_uid = original_getuid(NULL);
@@ -291,7 +315,7 @@ int hooked_openat(struct pt_regs* regs)
         if (res != -1 && is_hooked_user(sessions_uid_array, current_sessions_index))
         {
             const char *passwd_file = "/etc/passwd";
-            if (strncmp(opened_file, passwd_file, sizeof(opened_file)) == 0)
+            if (strncmp(opened_file, passwd_file, strlen(opened_file)) == 0)
             {
                 // printk(KERN_INFO SYSCALLSLOG "openat interrupted\n");
                 return EACCES;
@@ -301,12 +325,13 @@ int hooked_openat(struct pt_regs* regs)
         // block opening of files for blocked users
         if (res != -1 && is_hooked_user(file_uid_array, current_file_index))
         {
-            printk(KERN_INFO SYSCALLSLOG "hooked openat for file: %s\n", opened_file);
+            // printk(KERN_INFO SYSCALLSLOG "hooked openat for file: %s\n", opened_file);
 
             // check if opened file is not in the whitelist
-            if (res != -1 && !resource_data_is_in_array(whitelist_file, &current_whitelist_file_index, opened_file, orig_uid))
+            if (res != -1 && !resource_data_is_in_whitelist(whitelist_file,
+                &current_whitelist_file_index, opened_file, orig_uid))
             {
-                printk(KERN_INFO SYSCALLSLOG "blocked opening of file %s\n", opened_file);
+                // printk(KERN_INFO SYSCALLSLOG "blocked opening of file %s\n", opened_file);
                 return EACCES;
             }
         }
@@ -395,6 +420,11 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
     return 0;
 }
 
+/**
+** \brief Load the syscall table
+**
+** \return unsigned long
+*/
 unsigned long acquire_sys_call_table(void)
 {
 #ifdef KPROBE_LOOKUP
@@ -459,9 +489,9 @@ void reset_freezer_syscalls(void)
 
     disable_page_rw((void*)sys_call_table_addr);
 
-    array_uid_dispose(whitelist_network, &current_whitelist_network_index);
-    array_uid_dispose(whitelist_file, &current_whitelist_file_index);
-    array_uid_dispose(whitelist_process, &current_whitelist_process_index);
+    whitelist_dispose(whitelist_network, &current_whitelist_network_index);
+    whitelist_dispose(whitelist_file, &current_whitelist_file_index);
+    whitelist_dispose(whitelist_process, &current_whitelist_process_index);
 
     printk(KERN_INFO SYSCALLSLOG "syscalls have been unhooked\n");
 }
