@@ -210,7 +210,7 @@ process_t** get_processes_openBSD(void)
     char errbuf[_POSIX2_LINE_MAX];
     kvm_t *kernel = kvm_openfiles(NULL, NULL, NULL, KVM_NO_FILES, errbuf);
     int nentries = 0;
-    struct kinfo_proc *kinfo = kvm_getprocs(kernel, KERN_PROC_ALL, 0, sizeof(struct kinfo_proc), &nentries);
+    struct kinfo_proc *kinfo = kvm_getprocs(kernel, KERN_PROC_ALL, 0, sizeof(struct kinfo_proc*), &nentries);
     Array* processes = array_with_capacity(nentries + 1);
     int i;
     for (i = 0; i < nentries; ++i) {
