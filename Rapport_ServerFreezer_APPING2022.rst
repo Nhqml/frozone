@@ -373,8 +373,7 @@ Cette vérification permet de savoir si les données qui composent le syscall so
 Si c'est le cas, alors le comportement du syscall ne sera pas changé, sinon il sera modifié et ne fera absolument rien. Cette ressource est donc freeze.
 
 
-Exemple pour le blocage de connexion:
-######################################
+**Exemple pour le blocage de connexion :**
 
 .. image:: ../img/hook1.png
 	 :scale: 400
