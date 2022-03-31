@@ -14,7 +14,10 @@ int carto_ts_clean(void)
 
 void test_get_users(void)
 {
-    utmp_t** users = get_users();
+    #if OpenBSD
+        utmp_t** users = get_users_openBSD();
+    #else
+        utmp_t** users = get_users();
 
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(users);
@@ -30,8 +33,10 @@ void test_get_users(void)
 
 void test_get_processes(void)
 {
-    process_t** processes = get_processes();
-
+    #if OpenBSD
+        process_t** processes = get_processes_openBSD();
+    #else
+        process_t** processes = get_processes();
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(processes);
 
@@ -69,7 +74,10 @@ void test_get_connections(void)
 
 void test_get_files(void)
 {
-    char** files = get_files();
+    #if OpenBSD
+        char** files = get_files_openBSD();
+    #else
+        char** files = get_files();
 
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(files);
