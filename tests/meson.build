@@ -9,7 +9,7 @@ cunit_tests_public = executable(
   link_with: carto_lib,
   dependencies: [
     dependency('cunit'),
-  ]
+  ],
 )
 
 test('CUnit - Public', cunit_tests_public)

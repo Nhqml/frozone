@@ -13,7 +13,11 @@
     #include <utmpx.h>
 #endif
 
-typedef struct utmp utmp_t;
+#ifdef __OpenBSD__
+    typedef struct utmp utmp_t;
+#else
+    typedef struct utmpx utmp_t;
+#endif
 
 typedef struct
 {

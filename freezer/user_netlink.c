@@ -1,4 +1,8 @@
-#include <netlink.h>
+#ifdef __OpenBSD__
+    #include <netlink.h>
+#else
+    #include <linux/netlink.h>
+#end
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

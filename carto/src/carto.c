@@ -1,5 +1,11 @@
 #include <carto.h>
-#include <limits.h>
+
+#ifdef __OpenBSD__
+    #include <limits.h>
+#else
+    #include <linux/limits.h>
+#end
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/stat.h>
