@@ -14,7 +14,7 @@ int carto_ts_clean(void)
 
 void test_get_users(void)
 {
-    #if OpenBSD
+    #ifdef __OpenBSD__
         utmp_t** users = get_users_openBSD();
     #else
         utmp_t** users = get_users();
