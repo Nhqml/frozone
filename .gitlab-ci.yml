@@ -14,7 +14,7 @@ lint-freezer-job:
     before_script:
         - pip install cpplint
     script:
-        - cpplint freezer/*.c freezer/*.h
+        - "cpplint --recursive --linelength=120 --filter=-build/include_subdir,-readability/casting,-whitespace/braces freezer"
 
 build-freezer-job:
     stage: build
