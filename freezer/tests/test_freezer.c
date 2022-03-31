@@ -179,3 +179,26 @@ void test_freeze_open_to_blocked_user(void)
     CU_ASSERT_EQUAL(unfreeze_users_uid(BLOCKED_USERNAME_UID), 0);
     CU_ASSERT_EQUAL(run_command(cmd, BLOCKED_USERNAME_UID, TEST_GID), 0);
 }
+
+void test_freeze_whitelist_connections(void)
+{
+    char* cmd_ok = "curl 1.1.1.1";
+    char* cmd_nok = "curl 1.0.0.1";
+    // dummy test to check that new connections work normally
+    CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), 0);
+
+    // whitelist IP
+    CU_ASSERT_EQUAL(add_connection_whitelist(TEST_UID, "1.1.1.1"), 0);
+    CU_ASSERT_EQUAL(add_connection_whitelist(TEST_UID, "127.0.0.53"), 0);    // systemd-resolve on ubuntu
+    CU_ASSERT_EQUAL(add_connection_whitelist(101, "4.2.2.1"), 0);
+
+    // freeze the connections
+    CU_ASSERT_EQUAL(freeze_connections_uid(TEST_UID), 0);
+    CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), 0);        // 1.1.1.1 should work
+    CU_ASSERT_EQUAL(run_command(cmd_nok, TEST_UID, TEST_GID), -1);      // 1.0.0.1 should not
+
+    // unfreeze the connections
+    CU_ASSERT_EQUAL(unfreeze_connections_uid(TEST_UID), 0);
+    CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), 0);        // 1.1.1.1 should work
+    CU_ASSERT_EQUAL(run_command(cmd_nok, TEST_UID, TEST_GID), 0);       // 1.0.0.1 should work too
+}
