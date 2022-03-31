@@ -213,7 +213,12 @@ char *get_path_name(int fd)
 
     files = current->files;
 
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+    file = files_lookup_fd_rcu(files, fd);
+#else
     file = fcheck_files(files, fd);
+#endif
     if (!file)
     {
         return NULL;
