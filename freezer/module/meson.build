@@ -22,7 +22,7 @@ kernel_dir = '/lib/modules/' + kernel_version + '/build/'
 
 freezer_module = custom_target(
     'freezer_module',
-    input: ['freezer_hook.c', 'freezer_netlink.c', 'array.c', 'Kbuild'],
+    input: ['freezer_hook.c', 'freezer_netlink.c', 'array.c', 'freezer_hook_utils.c', 'Kbuild'],
     output: 'freezer_module.ko',
     command: [
         'make', '-C', kernel_dir,

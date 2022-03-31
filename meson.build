@@ -10,9 +10,11 @@ project('frozone', 'c',
 
 includes = include_directories('carto/include')
 
+freezer_includes = include_directories('freezer')
+
 subdir('carto/src')
-subdir('examples')
 subdir('freezer/lib')
+subdir('examples')
 subdir('freezer/module')
 
 if get_option('buildtype').startswith('debug')

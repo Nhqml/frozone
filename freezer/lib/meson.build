@@ -5,6 +5,6 @@ sources = files([
 
 freezer_lib = both_libraries(
   'frozone_freeze', sources,
-  include_directories: includes,
+  include_directories: freezer_includes,
   gnu_symbol_visibility: 'hidden'
 )

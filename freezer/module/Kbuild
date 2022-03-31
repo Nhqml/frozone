@@ -1,2 +1,2 @@
 obj-m := freezer_module.o
-freezer_module-objs := freezer_hook.o freezer_netlink.o array.o
+freezer_module-objs := freezer_hook.o freezer_netlink.o array.o freezer_hook_utils.o

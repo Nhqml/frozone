@@ -97,5 +97,25 @@ int add_connection_whitelist(unsigned int uid, char *ipaddr)
 
 int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)
 {
-    return send_socket_msg_except_uid(FILE, uid, WHITELIST, ipaddr);
+    return send_socket_msg_except_uid(NETWORK, uid, WHITELIST, ipaddr);
+}
+
+int add_file_whitelist(unsigned int uid, char *file_path)
+{
+    return send_socket_msg(FILE, uid, WHITELIST, file_path);
+}
+
+int add_file_whitelist_except_uid(unsigned int uid, char *file_path)
+{
+    return send_socket_msg_except_uid(FILE, uid, WHITELIST, file_path);
+}
+
+int add_process_whitelist(unsigned int uid, char *process_name)
+{
+    return send_socket_msg(PROCESS, uid, WHITELIST, process_name);
+}
+
+int add_process_whitelist_except_uid(unsigned int uid, char *process_name)
+{
+    return send_socket_msg_except_uid(PROCESS, uid, WHITELIST, process_name);
 }

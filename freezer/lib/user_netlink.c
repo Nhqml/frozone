@@ -163,6 +163,7 @@ bool send_message(int sock_fd, int resource, unsigned int uid, int action, char*
 int init_socket()
 {
     int sock_fd;
+
     // printf("Initializing socket\n");
 
     // create socket

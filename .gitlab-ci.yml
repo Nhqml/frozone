@@ -52,7 +52,7 @@ lint-carto-job:
     before_script:
         - pip install cpplint
     script:
-        - "cpplint --recursive --linelength=120 --filter=-build/include_subdir,-readability/casting,-whitespace/braces carto"
+        - "cpplint --recursive --linelength=120 --filter=-build/include_subdir,-readability/casting,-whitespace/braces,-whitespace/comments,-whitespace/newline carto"
 
 test-carto-job:
     stage: test
@@ -61,5 +61,6 @@ test-carto-job:
         KERNEL_VERSION: 5.4.0-104-generic # used to compile lkm on that specific version
         IS_GITLAB_JOB: 1
     script:
-        - meson build && meson compile -C build
-        - ./build/carto/src/tests/cunit_tests_private
+        - meson build
+        - meson compile -C build
+        - meson test -v -C build 'CUnit - Public' 'CUnit - Carto - Private'

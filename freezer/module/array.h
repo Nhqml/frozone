@@ -7,6 +7,7 @@
 #define FREEZER_MODULE_ARRAY_H_
 
 #define ARRAY_DEFAULT_CAPACITY 10
+#define MAX_SIZE_ARRAY 1024
 
 
 /**
