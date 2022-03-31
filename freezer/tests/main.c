@@ -1,3 +1,7 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Michel San
+ */
 #include <CUnit/Basic.h>
 #include <CUnit/CUnit.h>
 
