@@ -179,7 +179,7 @@ int is_hooked_user(int* array, int index)
  */
 int hooked_execve(struct pt_regs* regs)
 {
-    //printk(KERN_INFO SYSCALLSLOG "execve was called");
+    // printk(KERN_INFO SYSCALLSLOG "execve was called");
 
     if (is_hooked_user(process_uid_array, current_process_index))
     {
@@ -201,7 +201,7 @@ int hooked_execve(struct pt_regs* regs)
  */
 int hooked_connect(struct pt_regs* regs)
 {
-    //printk(KERN_INFO SYSCALLSLOG "connect was called\n");
+    // printk(KERN_INFO SYSCALLSLOG "connect was called\n");
 
     struct __user sockaddr_in* sk = (struct sockaddr_in*)regs->si;
     struct sockaddr_in* copied_sk = kzalloc(sizeof(sk), GFP_KERNEL);
@@ -215,7 +215,7 @@ int hooked_connect(struct pt_regs* regs)
 
         if (error == 0)
         {
-            if (copied_sk->sin_family == AF_INET) //  interrupt only internet connections
+            if (copied_sk->sin_family == AF_INET)  // interrupt only internet connections
             {
                 printk(KERN_INFO SYSCALLSLOG "internet connection detected\n");
 
@@ -311,7 +311,7 @@ int add_uid_to_array(int* array, int *index, unsigned int uid)
 int remove_uid_from_array(int *array, int *index, unsigned int uid)
 {
     int cur = 0;
-    int is_rm_index = 0; // false
+    int is_rm_index = 0;  // false
 
     if (*index >= MAX_SIZE_ARRAY)
         return 0;
@@ -436,11 +436,11 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
         switch (data->resource)
         {
         case FILE:
-            //add_to_whitelist(file_uid_array, data->resource_data, data->uid);
+            // add_to_whitelist(file_uid_array, data->resource_data, data->uid);
             break;
 
         case PROCESS:
-            //add_to_whitelist(process_uid_array, data->resource_data, data->uid);
+            // add_to_whitelist(process_uid_array, data->resource_data, data->uid);
             break;
 
         case NETWORK:
@@ -456,7 +456,7 @@ int freezer_call_wrapper(struct netlink_cmd *data, char *resource_data)
             break;
 
         case SESSIONS:
-            //add_to_whitelist(sessions_uid_array, data->resource_data, data->uid);
+            // add_to_whitelist(sessions_uid_array, data->resource_data, data->uid);
             break;
 
         default:
