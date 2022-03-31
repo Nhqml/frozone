@@ -1,15 +1,17 @@
-#ifdef __OpenBSD__
-    #include <netlink.h>
-#else
-    #include <linux/netlink.h>
-#end
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Michel San, Styvell Pidoux
+ */
+
+#include "user_netlink.h"
+#include <linux/netlink.h>
+#include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
+#include <pwd.h>
 #include <unistd.h>
 #include <utmpx.h>
-#include <pwd.h>
 #include "resource_com.h"
 
 #define NETLINK_USER 31
@@ -31,9 +33,30 @@ char* my_exact_copy(char *dest, char*src, size_t len)
     return dest;
 }
 
-int send_message(int sock_fd, int resource, unsigned int uid, int is_lock)
+char* my_exact_new_cat(char *dest, char*src, size_t len_dest, size_t len_src)
 {
-    printf("Sending message to kernel\n");
+    char *new_dest = malloc(sizeof(char) * (len_dest + len_src));
+
+    if (new_dest == NULL)
+        return NULL;
+
+
+    for (size_t i = 0; i < len_dest; ++i)
+    {
+        new_dest[i] = dest[i];
+    }
+
+    for (size_t i = 0; i < len_src; ++i)
+    {
+        new_dest[len_dest + i] = src[i];
+    }
+
+    return new_dest;
+}
+
+int send_message(int sock_fd, int resource, unsigned int uid, int action, char* resource_data)
+{
+    // printf("Sending message to kernel\n");
 
     // allocate netlink message structure
     nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
@@ -49,17 +72,33 @@ int send_message(int sock_fd, int resource, unsigned int uid, int is_lock)
     nlh->nlmsg_flags = 0;
     nlh->nlmsg_seq = 0;
 
+    int size_resource_data = 0;
+
     // set data struct
     struct netlink_cmd data =
     {
         .resource = resource,
         .uid = uid,
-        .is_lock = is_lock
+        .action = action
     };
 
     // add message to the netlink message strcuture
     char *buf = (char *) &data;
-    char *dest = my_exact_copy(NLMSG_DATA(nlh), buf, sizeof(struct netlink_cmd));
+    char *dest;
+
+    if (resource_data != NULL)
+    {
+        size_resource_data = strlen(resource_data);
+        char *new_buf = my_exact_new_cat(buf, resource_data, sizeof(struct netlink_cmd), size_resource_data);
+
+        dest = my_exact_copy(NLMSG_DATA(nlh), new_buf, sizeof(struct netlink_cmd) + size_resource_data);
+        free(new_buf);
+    }
+    else
+    {
+        dest = my_exact_copy(NLMSG_DATA(nlh), buf, sizeof(struct netlink_cmd));
+    }
+
     if (dest == NULL)
     {
         return -1;
@@ -80,13 +119,12 @@ int send_message(int sock_fd, int resource, unsigned int uid, int is_lock)
         return -1;
     }
 
-    //free(nlh);
     return res_msg;
 }
 
 int init_socket()
 {
-    printf("Initializing socket\n");
+    // printf("Initializing socket\n");
 
     // create socket
     int sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
@@ -116,7 +154,7 @@ int init_socket()
 
 int receive_message(int sock_fd)
 {
-    printf("Receiving message from kernel\n");
+    // printf("Receiving message from kernel\n");
 
     // receive the message
     ssize_t res_msg = recvmsg(sock_fd, &msg, 0);
@@ -125,7 +163,7 @@ int receive_message(int sock_fd)
         return -1;
     }
 
-    printf("Received message payload: %d\n", nlh->nlmsg_type);
+    // printf("Received message payload: %d\n", nlh->nlmsg_type);
 
     if (nlh->nlmsg_type == NLMSG_DONE)
     {
@@ -139,7 +177,8 @@ int receive_message(int sock_fd)
 
 int exit_socket(int sock_fd)
 {
-    printf("Exiting socket\n");
+    // printf("Exiting socket\n");
+
     if (nlh != NULL)
     {
         free(nlh);
@@ -149,7 +188,7 @@ int exit_socket(int sock_fd)
     return close(sock_fd);
 }
 
-int send_socket_msg(int resource, unsigned int uid, int is_lock)
+int send_socket_msg(int resource, unsigned int uid, int action, char* resource_data)
 {
     int sock_fd = init_socket();
     if (sock_fd < 0)
@@ -157,7 +196,7 @@ int send_socket_msg(int resource, unsigned int uid, int is_lock)
         return -1;
     }
 
-    int bytes_send = send_message(sock_fd, resource, uid, is_lock);
+    int bytes_send = send_message(sock_fd, resource, uid, action, resource_data);
     if (bytes_send < 0)
     {
         exit_socket(sock_fd);
@@ -174,7 +213,7 @@ int send_socket_msg(int resource, unsigned int uid, int is_lock)
     return exit_socket(sock_fd);
 }
 
-int send_socket_msg_except_uid(int resource, unsigned int uid, int is_lock)
+int send_socket_msg_except_uid(int resource, unsigned int uid, int action, char* resource_data)
 {
     struct passwd *p;
     struct utmpx* entry;
@@ -190,11 +229,9 @@ int send_socket_msg_except_uid(int resource, unsigned int uid, int is_lock)
 
         if (p != NULL)
         {
-            printf("For the name %s, the uid is %d\n", entry->ut_user, p->pw_uid);
-
             if (p->pw_uid != uid)
             {
-                res = send_socket_msg(resource, p->pw_uid, is_lock);
+                res = send_socket_msg(resource, p->pw_uid, action, resource_data);
                 if (res < 0)
                 {
                     endutxent();
@@ -210,4 +247,3 @@ int send_socket_msg_except_uid(int resource, unsigned int uid, int is_lock)
     endutxent();
     return 1;
 }
-

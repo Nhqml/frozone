@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac
+ */
+
 #include <CUnit/CUnit.h>
 #include <carto.h>
 #include <stdlib.h>
@@ -14,17 +19,10 @@ int carto_ts_clean(void)
 
 void test_get_users(void)
 {
-    #ifdef __OpenBSD__
-        utmp_t** users = get_users_openBSD();
-    #else
-        utmp_t** users = get_users();
-    #endif
+    utmp_t** users = get_users();
 
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(users);
-
-    // Should never return an empty array (since at least one user should be logged in)
-    CU_ASSERT_PTR_NOT_NULL(*users);
 
     for (utmp_t** user = users; *user != NULL; ++user)
         free(*user);
@@ -34,11 +32,8 @@ void test_get_users(void)
 
 void test_get_processes(void)
 {
-    #ifdef __OpenBSD__
-        process_t** processes = get_processes_openBSD();
-    #else
-        process_t** processes = get_processes();
-    #endif
+    process_t** processes = get_processes();
+
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(processes);
 
@@ -71,16 +66,32 @@ void test_get_processes(void)
 
 void test_get_connections(void)
 {
-    CU_PASS('Not implemented');
+    connection_t** connections = get_connections();
+
+    // Should always return something
+    CU_ASSERT_PTR_NOT_NULL(connections);
+
+    for (connection_t** connection = connections; *connection != NULL; ++connection)
+    {
+        connection_t* conn = *connection;
+
+        CU_ASSERT_TRUE(conn->type == UDP || conn->type == TCP);
+
+        CU_ASSERT_TRUE(0 <= conn->s_port && conn->s_port <= 65535);
+        CU_ASSERT_TRUE(0 <= conn->d_port && conn->d_port <= 65535);
+
+        CU_ASSERT_TRUE(conn->addr_type == AF_INET || conn->addr_type == AF_INET6);
+
+        CU_ASSERT_TRUE(1 <= conn->state && conn->state < 13);
+
+        free(conn);
+    }
+    free(connections);
 }
 
 void test_get_files(void)
 {
-    #ifdef __OpenBSD__
-        char** files = get_files_openBSD();
-    #else
-        char** files = get_files();
-    #endif
+    file_t** files = get_files();
 
     // Should always return something
     CU_ASSERT_PTR_NOT_NULL(files);
@@ -88,12 +99,13 @@ void test_get_files(void)
     // Should never return an empty array (since at least one file should be opened)
     CU_ASSERT_PTR_NOT_NULL(*files);
 
-    for (char** file = files; *file != NULL; ++file)
+    for (file_t** file = files; *file != NULL; ++file)
     {
-        CU_ASSERT_PTR_NOT_NULL(*file);
-        // No empty file name
-        CU_ASSERT_NOT_EQUAL(*file[0], '\0');
+        // No missing or empty file path
+        CU_ASSERT_PTR_NOT_NULL((*file)->path);
+        CU_ASSERT_NOT_EQUAL(((*file)->path)[0], '\0');
 
+        free((*file)->path);
         free(*file);
     }
 

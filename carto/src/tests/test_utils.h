@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Copyright (C) 2022 Kenji Gaillac
+ */
+
 #pragma once
 
 int utils_ts_init(void);
