@@ -77,6 +77,26 @@ process_t** get_processes(void)
 
 void get_connections(void) {}
 
+void
+find_splices(struct kinfo_file *kf, int cnt)
+{
+	int i, created;
+
+	created = 0;
+	for (i = 0; i < cnt; i++) {
+		if (kf[i].f_type != DTYPE_SOCKET ||
+		    (kf[i].so_splice == 0 && kf[i].so_splicelen != -1))
+			continue;
+		if (created++ == 0) {
+			if (hcreate(1000) == 0)
+				err(1, "hcreate");
+		}
+		splice_insert('>', kf[i].f_data, &kf[i]);
+		if (kf[i].so_splice != 0)
+			splice_insert('<', kf[i].so_splice, &kf[i]);
+	}
+}
+
 char** get_files(void)
 {
     uid_t uid;
