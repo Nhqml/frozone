@@ -207,7 +207,7 @@ void test_freeze_whitelist_processes(void)
 {
     char* cmd_ok = "/usr/bin/ls";
 
-    //dummy tests to test that both commands work normally
+    // dummy tests to test that both commands work normally
     CU_ASSERT_EQUAL(run_command(cmd_ok, TEST_UID, TEST_GID), 0);
 
     // freeze processes
