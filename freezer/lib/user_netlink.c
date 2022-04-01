@@ -217,7 +217,7 @@ bool receive_message(int sock_fd)
 int exit_socket(int sock_fd)
 {
     // printf("Exiting socket\n");
-    
+
     if (nlh != NULL)
     {
         free(nlh);

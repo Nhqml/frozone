@@ -92,14 +92,30 @@ int main(int argc, char* argv[])
 
         fprintf(f, "%-5s", conn->prot == UDP ? "UDP" : "TCP");
 
-        fprintf(f, "%-30s",
-                inet_ntop(conn->addr_type, conn->addr_type == AF_INET ? &(conn->s_addr.addr) : &(conn->s_addr.addr6),
-                          buf, 256));
+        if (conn->addr_type == AF_INET)
+        {
+            fprintf(f, "%-30s",
+                inet_ntop(conn->addr_type, &(conn->s_addr.addr), buf, 256));
+        }
+        else
+        {
+            fprintf(f, "%-30s",
+                inet_ntop(conn->addr_type, &(conn->s_addr.addr6), buf, 256));
+        }
+
         fprintf(f, "%-10u", conn->s_port);
 
-        fprintf(f, "%-30s",
-                inet_ntop(conn->addr_type, conn->addr_type == AF_INET ? &(conn->d_addr.addr) : &(conn->d_addr.addr6),
-                          buf, 256));
+        if (conn->addr_type == AF_INET)
+        {
+            fprintf(f, "%-30s",
+                inet_ntop(conn->addr_type, &(conn->d_addr.addr), buf, 256));
+        }
+        else
+        {
+            fprintf(f, "%-30s",
+                inet_ntop(conn->addr_type, &(conn->d_addr.addr6), buf, 256));
+        }
+
         fprintf(f, "%-10u", conn->s_port);
 
         fprintf(f, "%-10u\n", conn->uid);

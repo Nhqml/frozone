@@ -52,7 +52,8 @@ Array* add_connections_from(char* file_path, Array* a, enum prot prot, sa_family
         char buf[256];
 
         // Skip first line (header)
-        fgets(buf, 256, f);
+        char *unused = fgets(buf, 256, f);
+        (void) unused;
 
         // Large enough to handle IPv4 and IPv6
         char s_addr[48], d_addr[48];

@@ -12,7 +12,7 @@ mkfile = custom_target(
 
 meson_get_kversion_sh = find_program('meson_get_kversion.sh', dirs:meson.current_build_dir())
 
-kernel_version = run_command(meson_get_kversion_sh).stdout().strip()
+kernel_version = run_command(meson_get_kversion_sh, check: false).stdout().strip()
 
 kernel_dir = '/lib/modules/' + kernel_version + '/build/'
 

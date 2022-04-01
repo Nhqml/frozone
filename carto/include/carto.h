@@ -19,21 +19,21 @@ typedef struct utmpx utmp_t;
 
 typedef struct
 {
-    pid_t pid;      // PID
-    char* exe_path; // Executable path
-    char* cmdline;  // Command line
-    char* cwd;      // Current Working Directory
-    char* root;     // Filesystem root for this process
-    uid_t uid;      // UID
-    gid_t gid;      // GID
-    time_t etime;   // Elasped time
+    pid_t pid;          // PID
+    char* exe_path;     // Executable path
+    char* cmdline;      // Command line
+    char* cwd;          // Current Working Directory
+    char* root;         // Filesystem root for this process
+    uid_t uid;          // UID
+    gid_t gid;          // GID
+    time_t etime;       // Elasped time
 } process_t;
 
 typedef struct
 {
-    pid_t pid;             // PID
-    char* path;            // File Path
-    struct stat file_stat; // File stat informations
+    pid_t pid;              // PID
+    char* path;             // File Path
+    struct stat file_stat;  // File stat informations
 } file_t;
 
 enum prot
@@ -44,16 +44,16 @@ enum prot
 
 typedef struct
 {
-    uid_t uid;             // User ID
-    enum prot prot;        // Protocole (TCP / UDP)
-    sa_family_t addr_type; // See <sys/socket.h>
+    uid_t uid;              // User ID
+    enum prot prot;         // Protocole (TCP / UDP)
+    sa_family_t addr_type;  // See <sys/socket.h>
     union
     {
         struct in_addr addr;
         struct in6_addr addr6;
-    } s_addr, d_addr;         // Source and destination addresses
-    in_port_t s_port, d_port; // Source and destination ports
-    uint8_t state;            // See tcp_states.h
+    } s_addr, d_addr;           // Source and destination addresses
+    in_port_t s_port, d_port;   // Source and destination ports
+    uint8_t state;              // See tcp_states.h
 } connection_t;
 
 /**
