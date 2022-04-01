@@ -301,97 +301,148 @@ Ci-dessous, les méthodes nécéssaires à appeler pour lock, unloc, ou ajouter 
 Users
 #########
 
-Pour **LOCK** la création de sessions et la connexion à une session pour **UN** utilisateur : `int freeze_users_uid(unsigned int uid)`
+Pour **LOCK** la création de sessions et la connexion à une session pour **UN** utilisateur :
 
-Pour **UNLOCK** la création de sessions et la connexion à une session pour **UN** utilisateur : `int unfreeze_users_uid(unsigned int uid)`
+.. code-block:: c
 
-Pour **LOCK** la création de sessions et la connexion à une session pour **TOUS** les utilisateurs **SAUF UN** : `int freeze_users_except_uid(unsigned int uid)`
+   int freeze_users_uid(unsigned int uid)
 
-Pour **UNLOCK** la création de sessions et la connexion à une session pour **TOUS** les utilisateurs **SAUF UN** : `int unfreeze_users_except_uid(unsigned int uid)`
+Pour **UNLOCK** la création de sessions et la connexion à une session pour **UN** utilisateur :
+
+.. code-block:: c
+
+   int unfreeze_users_uid(unsigned int uid)
+
+Pour **LOCK** la création de sessions et la connexion à une session pour **TOUS** les utilisateurs **SAUF UN** :
+
+.. code-block:: c
+
+   int freeze_users_except_uid(unsigned int uid)
+
+Pour **UNLOCK** la création de sessions et la connexion à une session pour **TOUS** les utilisateurs **SAUF UN** :
+
+.. code-block:: c
+
+   int unfreeze_users_except_uid(unsigned int uid)
 
 Processes
 ############
 
 Pour **LOCK** l'exécution des process pour **UN** utilisateur :
+
 .. code-block:: c
-    int freeze_processes_uid(unsigned int uid)
+
+   int freeze_processes_uid(unsigned int uid)
 
 Pour **UNLOCK** l'exécution des process pour **UN** utilisateur :
+
 .. code-block:: c
-    int unfreeze_processes_uid(unsigned int uid)`
+
+   int unfreeze_processes_uid(unsigned int uid)
 
 Pour ajouter à une whitelist un process pour **UN** utilisateur :
+
 .. code-block:: c
-    int add_process_whitelist(unsigned int uid, char *process_name)
+
+   int add_process_whitelist(unsigned int uid, char *process_name)
 
 
 Pour **LOCK**  l'exécution des process pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
-    int freeze_processes_except_uid(unsigned int uid)
+
+   int freeze_processes_except_uid(unsigned int uid)
 
 Pour **UNLOCK** l'exécution des process pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
-    int unfreeze_processes_except_uid(unsignealler a la ligne git lab ided int uid)
+
+   int unfreeze_processes_except_uid(unsignealler a la ligne git lab ided int uid)
 
 Pour ajouter à une whitelist un process pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
-    int add_process_whitelist_except_uid(unsigned int uid, char *process_name)
+
+   int add_process_whitelist_except_uid(unsigned int uid, char *process_name)
 
 Files
 ######
 
 Pour **LOCK**  l'ouverture et l'écriture de fichiers pour **UN** utilisateur :
+
 .. code-block:: c
-    int freeze_files_uid(unsigned int uid)
+
+   int freeze_files_uid(unsigned int uid)
 
 Pour **UNLOCK** l'ouverture et l'écriture de fichiers pour **UN** utilisateur :
+
 .. code-block:: c
-    int unfreeze_files_uid(unsigned int uid)
+
+   int unfreeze_files_uid(unsigned int uid)
 
 Pour ajouter à une whitelist un nom de fichiers pour **UN** utilisateur :
+
 .. code-block:: c
-    int add_file_whitelist(unsigned int uid, char *file_path)
+
+   int add_file_whitelist(unsigned int uid, char *file_path)
 
 
 Pour **LOCK**  l'ouverture et l'écriture de fichiers pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
-    int freeze_files_except_uid(unsigned int uid)
+
+   int freeze_files_except_uid(unsigned int uid)
 
 Pour **UNLOCK** l'ouverture et l'écriture de fichiers pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
-    int unfreeze_files_except_uid(unsigned int uid)
+
+   int unfreeze_files_except_uid(unsigned int uid)
 
 Pour ajouter à une whitelist un nom de fichiers pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
-    int add_file_whitelist_except_uid(unsigned int uid, char *file_path)
+
+   int add_file_whitelist_except_uid(unsigned int uid, char *file_path)
 
 Connections
 ###############
 
 Pour **LOCK**  les connexions internet via des sockets pour **UN** utilisateur :
+
 .. code-block:: c
-    int freeze_connections_uid(unsigned int uid)
+
+   int freeze_connections_uid(unsigned int uid)
 
 Pour **UNLOCK** les connexions internet via des sockets pour **UN** utilisateur :
 .. code-block:: c
-    int unfreeze_connections_uid(unsigned int uid)
+
+   int unfreeze_connections_uid(unsigned int uid)
 
 Pour ajouter à une whitelist une adresse IP pour **UN** utilisateur :
+
 .. code-block:: c
-    int add_connection_whitelist(unsigned int uid, char *ipaddr)
+
+   int add_connection_whitelist(unsigned int uid, char *ipaddr)
 
 
 Pour **LOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
-    int freeze_connections_except_uid(unsigned int uid)
+
+   int freeze_connections_except_uid(unsigned int uid)
 
 Pour **UNLOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
     int unfreeze_connections_except_uid(unsigned int uid)
 
 Pour ajouter à une whitelist une adresse IP pour **TOUS** les utilisateurs **SAUF UN** :
+
 .. code-block:: c
-    int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)
+
+   int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)
+
 
 Communication Userland / Kernelland
 +++++++++++++++++++++++++++++++++++
@@ -429,8 +480,10 @@ L’impact sur le système d’exploitation va cette fois-ci être non négligea
 
 Nous avons donc effectuer un test simple pour nous rendre compte de l'impact.
 Apres avoir déployé une VM Ubuntu 21.04 via Vagrant. Nous avons comparé les temps d'éxecution d'une simple boucle d'affichage.
+
 .. code-block:: sh
-        time while  [ $x -le 1000 ]; do   echo $(( x++ )); done
+
+   time while  [ $x -le 1000 ]; do   echo $(( x++ )); done
 
 Les résultats sont les suivants:
 
