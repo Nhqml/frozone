@@ -1,4 +1,3 @@
-#include <carto.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -10,10 +9,6 @@
 #include <sys/param.h>
 #include <sys/sysctl.h>
 #include <err.h>
-
-#include "processes.h"
-#include "users.h"
-#include "utils.h"
 
 utmp_t** get_users(void)
 {

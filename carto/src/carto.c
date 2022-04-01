@@ -3,7 +3,9 @@
  * Copyright (C) 2022 Kenji Gaillac, Valentin Seux
  */
 
-#include <limits.h>
+ #include <carto.h>
+
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
