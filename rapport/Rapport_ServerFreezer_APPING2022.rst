@@ -521,7 +521,7 @@ Apres avoir déployé une VM Ubuntu 21.04 via Vagrant. Nous avons comparé les t
 
 .. code-block:: sh
 
-   time while  [ $x -le 1000 ]; do   echo $(( x++ )); done
+   time while  [ $x -le 100000 ]; do   echo $(( x++ )); done
 
 Les résultats sont les suivants:
 
@@ -555,7 +555,7 @@ Contrairement à debian, OpenBSD ne possède pas (par défaut) le système de fi
 
 La fonction "get_users" se comporte quasiment de la même façon sur openBSD que sur linux. La principale différence est l'utilisation sur les systèmes Linux de la bibliothèque "utmpx.h". Cette bibliothèque n'étant pas disponible sur OpenBSD, la bibliothèque "utmp.h" est utilisée.
 
-Le système de fichier "proc" n'étant pas disponible sur OpenBSD, la bibliothèque "kvm.h" est utilisée pour lister les processus et les fichiers. La fonction "kvm_getprocs" de cette bibliothèque permet de récupérer les informations des processus. La fonction "kvm_getfiles" permet de récupérer les informations des fichiers ouverts. 
+Le système de fichier "proc" n'étant pas disponible sur OpenBSD, la bibliothèque "kvm.h" est utilisée pour lister les processus et les fichiers. La fonction "kvm_getprocs" de cette bibliothèque permet de récupérer les informations des processus. La fonction "kvm_getfiles" permet de récupérer les informations des fichiers ouverts.
 
 La structure "kinfo_proc" de cette bibliothèque permet de stocker les informations du processus. Similairement la structure "kinfo_file" permet de stocker les informations du fichier.
 
@@ -603,7 +603,6 @@ Une solution fonctionnelle sous Ubuntu 20.04 et 21.04 :
 - Une API de 4 fonctions permettant de générer un fichier contenant la cartographie du système
 - Un module kernel contenant des fonctions permettant de bloquer les syscalls relatifs aux ressources (utilisateurs, fichiers, connexions, processus) et de débloquer les ressources basé sur une whitelist sur les ressources (processus, fichiers, connexions).
 
-A COMPLETER
 
 
 Difficultés rencontrées
@@ -614,7 +613,6 @@ Difficultés rencontrées
 - Difficulté de trouver les leaks mémoire en KernelLand
 - Programmation sécurisée en kernelland, notamment dans la gestion de la transition mémoire userland->kernelland
 
-A COMPLETER
 
 
 Poster Ing
