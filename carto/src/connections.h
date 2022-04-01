@@ -35,4 +35,4 @@ void hex_to_ipv6(char* hex, struct in6_addr* ipv6);
 ** \param sa_t Address family (IPv4 / IPv6)
 ** \return Array*
 */
-Array* add_connections_from(char* file_path, Array* a, enum conn_type conn_t, sa_family_t sa_t);
+Array* add_connections_from(char* file_path, Array* a, enum prot conn_t, sa_family_t sa_t);

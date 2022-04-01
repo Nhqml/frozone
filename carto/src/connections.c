@@ -44,7 +44,7 @@ void hex_to_ipv6(char* hex, struct in6_addr* ipv6)
     }
 }
 
-Array* add_connections_from(char* file_path, Array* a, enum conn_type conn_type, sa_family_t sa)
+Array* add_connections_from(char* file_path, Array* a, enum prot prot, sa_family_t sa)
 {
     FILE* f = fopen(file_path, "r");
     if (f != NULL)
@@ -67,7 +67,7 @@ Array* add_connections_from(char* file_path, Array* a, enum conn_type conn_type,
         {
             connection_t* conn = xmalloc(sizeof(connection_t));
             conn->uid = uid;
-            conn->type = conn_type;
+            conn->prot = prot;
             conn->addr_type = sa;
 
             if (conn->addr_type == AF_INET)
