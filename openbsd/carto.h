@@ -59,14 +59,6 @@ __VISIBILITY__("default")
 process_t** get_processes(void);
 
 /**
-** \brief Return a NULL-terminated array of current TCP and UDP connections
-**
-** The caller is responsible for freeing the memory
-*/
-__VISIBILITY__("default")
-connection_t** get_connections(void);
-
-/**
 ** \brief Return a NULL-terminated array of paths (active file descriptors)
 **
 ** The caller is responsible for freeing the memory
