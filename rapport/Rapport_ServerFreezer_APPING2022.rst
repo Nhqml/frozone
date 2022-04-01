@@ -614,10 +614,6 @@ Difficultés rencontrées
 - Programmation sécurisée en kernelland, notamment dans la gestion de la transition mémoire userland->kernelland
 
 
-
-Poster Ing
-++++++++++
-
 Remerciements
 +++++++++++++
 
