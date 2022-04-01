@@ -14,8 +14,6 @@
 #include "../carto/src/processes.h"
 #include "../utils.h"
 
-typedef struct utmp utmp_t;
-
 utmp_t** get_users(void)
 {
 	struct utmp utmp;
@@ -77,7 +75,7 @@ process_t** get_processes(void)
     return (process_t**)array_as_raw(processes);
 }
 
-char** get_files(void)
+file_t** get_files(void)
 {
     kvm_t *kd;
 	struct kinfo_file *kf, *kflast;
