@@ -42,20 +42,6 @@ enum prot
     TCP,
 };
 
-typedef struct
-{
-    uid_t uid;             // User ID
-    enum prot prot;        // Protocole (TCP / UDP)
-    sa_family_t addr_type; // See <sys/socket.h>
-    union
-    {
-        struct in_addr addr;
-        struct in6_addr addr6;
-    } s_addr, d_addr;         // Source and destination addresses
-    in_port_t s_port, d_port; // Source and destination ports
-    uint8_t state;            // See tcp_states.h
-} connection_t;
-
 /**
 ** \brief Return a NULL-terminated array of currently logged-in users
 **
