@@ -12,7 +12,7 @@
 
 #include "./carto.h"
 #include "../carto/src/processes.h"
-#include "../carto/src/utils.h"
+#include "../utils.h"
 
 typedef struct utmp utmp_t;
 
