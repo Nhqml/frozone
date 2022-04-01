@@ -10,7 +10,7 @@
 #include <sys/sysctl.h>
 #include <err.h>
 
-#include "../carto/include/carto.h"
+#include "./carto.h"
 #include "../carto/src/processes.h"
 #include "../carto/src/utils.h"
 
