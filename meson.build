@@ -14,17 +14,18 @@ freezer_includes = include_directories('freezer')
 
 if host_machine.system() == 'linux'
     subdir('carto/src')
+
+    subdir('freezer/lib')
+    subdir('freezer/module')
+
 elif host_machine.system() == 'openbsd'
     subdir('openbsd')
 endif
 
-subdir('freezer/lib')
-subdir('freezer/module')
-
 subdir('examples')
 
 if get_option('buildtype').startswith('debug')
-  subdir('tests')
-  subdir('carto/src/tests/')
-  subdir('freezer/tests')
+    subdir('tests')
+    subdir('carto/src/tests/')
+    subdir('freezer/tests')
 endif

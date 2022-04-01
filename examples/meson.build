@@ -4,8 +4,10 @@ demo_carto = executable(
   link_with: carto_lib,
 )
 
-demo_freezer = executable(
-  'demo_freezer', 'demo_freezer.c',
-  include_directories: freezer_includes,
-  link_with: freezer_lib,
-)
+if host_machine.system() == 'linux'
+    demo_freezer = executable(
+    'demo_freezer', 'demo_freezer.c',
+    include_directories: freezer_includes,
+    link_with: freezer_lib,
+    )
+endif
