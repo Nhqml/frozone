@@ -404,7 +404,35 @@ Impact sur le système d’exploitation
 
 L’impact sur le système d’exploitation va cette fois-ci être non négligeable puisque l’on va surcharger chaque appel système. Cela va consister dans les faits a un parcours de tableau a chaque appel système hooké. Les surcharge des appels systèmes read et write en particulier risque d'avoir un impact sur les temps de réponses du système.
 
-TODO(Theophane): Comparaison de perfo de fonctions simples (find) pour trois VM (SANS,MODULE KERNEL SANS WHITELIST, AVEC WHITELIST VIDE/MAX)
+Nous avons donc effectuer un test simple pour nous rendre compte de l'impact.
+Apres avoir déployé une VM Ubuntu 21.04 via Vagrant. Nous avons comparé les temps d'éxecution d'une simple boucle d'affichage.
+
+    ..code-block:: sh
+        x=1
+        time while  [ $x -le 1000 ]; do   echo $(( x++ )); done
+
+
+Les résultats sont les suivants:
+
++-------------------------------------------------+-------------------+
+| Environnement                                   | Temps de réponse  |
++=================================================+===================+
+| Module Kernel non chargé                        | 13.367s           |
++-------------------------------------------------+-------------------+
+| Module Kernel chargé Whitelist vide             | 19.954s           |
++-------------------------------------------------+-------------------+
+| Module Kernel chargé Whitelist 100 elements     | 17.639s           |
++-------------------------------------------------+-------------------+
+| Module Kernel chargé Whitelist 1000 éléments    | 19.344s           |
++-------------------------------------------------+-------------------+
+| Module Kernel chargé Whitelist 10 000 éléments  | 25.607s           |
++-------------------------------------------------+-------------------+
+| Module Kernel chargé Whitelist 100 000 éléments | 53.829s           |
++-------------------------------------------------+-------------------+
+| Module Kernel chargé Whitelist vide             | 85.694s           |
++-------------------------------------------------+-------------------+
+
+Sans pousser le test de performance plus loin on s'aperçoit que l'impact sur les temps de réponses est non négligeable à partir d'une whitelist contenant 10 000 éléments. Dans ce cas nous figure nous nous sommes intéréssé uniquement au blocage des fichiers, celui-ci étant le plus couteux pour le système.
 
 OpenBSD
 =======
