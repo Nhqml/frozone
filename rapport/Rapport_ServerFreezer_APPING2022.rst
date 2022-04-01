@@ -561,8 +561,6 @@ La structure "kinfo_proc" de cette bibliothèque permet de stocker les informati
 
 Considérant les nombreuses différences entre debian et BSD, en ce qui concerne la création et le chargement d'un module kernel, le portage de la partie freeze n'a pas été réalisé. Cela reste une piste intéressante pour les futures développements.
 
-TODO(erfan): Détail portage de la partie carto + Pistes pour la partie Freeze
-
 Intégration continue & QA
 =========================
 
