@@ -31,12 +31,12 @@ typedef struct
 
 typedef struct
 {
-    pid_t pid;
-    char* path;
-    struct stat file_stat;
+    pid_t pid;             // PID
+    char* path;            // File Path
+    struct stat file_stat; // File stat informations
 } file_t;
 
-enum conn_type
+enum prot
 {
     UDP,
     TCP,
@@ -44,16 +44,16 @@ enum conn_type
 
 typedef struct
 {
-    uid_t uid;
-    enum conn_type type;
+    uid_t uid;             // User ID
+    enum prot prot;        // Protocole (TCP / UDP)
     sa_family_t addr_type; // See <sys/socket.h>
     union
     {
         struct in_addr addr;
         struct in6_addr addr6;
-    } s_addr, d_addr;
-    in_port_t s_port, d_port;
-    uint8_t state; // See tcp_states.h
+    } s_addr, d_addr;         // Source and destination addresses
+    in_port_t s_port, d_port; // Source and destination ports
+    uint8_t state;            // See tcp_states.h
 } connection_t;
 
 /**
