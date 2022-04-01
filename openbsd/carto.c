@@ -108,5 +108,5 @@ file_t** get_files(void)
 
     array_push(a, NULL);
 
-    return (char**)array_as_raw(a);
+    return (file_t**)array_as_raw(a);
 }

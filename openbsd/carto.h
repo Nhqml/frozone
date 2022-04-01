@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <utmp.h>
 
-typedef struct utmpx utmp_t;
+typedef struct utmp utmp_t;
 
 typedef struct
 {
