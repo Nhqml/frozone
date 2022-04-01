@@ -571,7 +571,6 @@ Nous avons mis en place une pipeline de développement sur GitLab utilisant plus
 - Compilation du code C via `meson`
 - SAST avec semgrep et des règles basiques de sécurité pour détecter des simples cas de buffer overflow (dépassement de tampon) ou d'injection de code
 - Test Unitaires `CUnit`
-- Tests Unitaires `KUnit` (à implémenter...)
 
 
 Projet
