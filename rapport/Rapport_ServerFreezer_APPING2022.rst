@@ -7,16 +7,16 @@ Server Freezer: Un d√©mon Linux pour cartographier et geler la configuration d‚Ä
 
 
 .. image:: ../img/LSE-logo.png
-        :scale: 500
+        :scale: 400
 
 
 .. image:: ../img/EPITA.png
-        :scale: 500
+        :scale: 200
         :align: center
 
 
 .. image:: ../img/logo_apprenti.png
-        :scale: 400
+        :scale: 200
 
 .. contents::
 
