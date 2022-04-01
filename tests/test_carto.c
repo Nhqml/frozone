@@ -75,7 +75,7 @@ void test_get_connections(void)
     {
         connection_t* conn = *connection;
 
-        CU_ASSERT_TRUE(conn->type == UDP || conn->type == TCP);
+        CU_ASSERT_TRUE(conn->prot == UDP || conn->prot == TCP);
 
         CU_ASSERT_TRUE(0 <= conn->s_port && conn->s_port <= 65535);
         CU_ASSERT_TRUE(0 <= conn->d_port && conn->d_port <= 65535);

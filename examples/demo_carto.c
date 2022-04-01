@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
     {
         connection_t* conn = *connection;
 
-        fprintf(f, "%-5s", conn->type == UDP ? "UDP" : "TCP");
+        fprintf(f, "%-5s", conn->prot == UDP ? "UDP" : "TCP");
 
         fprintf(f, "%-30s",
                 inet_ntop(conn->addr_type, conn->addr_type == AF_INET ? &(conn->s_addr.addr) : &(conn->s_addr.addr6),

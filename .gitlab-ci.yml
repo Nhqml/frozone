@@ -27,7 +27,7 @@ build-freezer-job-v5.4:
     script:
         - meson build && meson compile -C build
 
-#build for kernel 5.11 on Ubuntu 21.04
+# build for kernel 5.11 on Ubuntu 21.04
 build-freezer-job-v5.11:
     stage: build
     image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu2104/gcc
@@ -53,6 +53,30 @@ sast-semgrep-freezer-job:
         - semgrep --metrics=off --config=security/freezer_module.yaml freezer
         - semgrep --metrics=off --config=security/freezer_module.yaml freezer -o res.json --json
         - python3 security/pretty_printer_semgrep.py res.json
+
+deploy-freezer-job-v5.4:
+    stage: deploy
+    image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu/gcc
+    variables:
+        KERNEL_VERSION: 5.4.0-104-generic # used to compile lkm on that specific version
+        IS_GITLAB_JOB: 1
+    script:
+        - meson --buildtype=release build-release && meson compile -C build-release
+    artifacts:
+        paths:
+            - build-release
+
+deploy-freezer-job-v5.11:
+    stage: deploy
+    image: registry.cri.epita.fr/kenji.gaillac/frozone/ubuntu2104/gcc
+    variables:
+        KERNEL_VERSION: 5.11.0-49-generic # used to compile lkm on that specific version
+        IS_GITLAB_JOB: 1
+    script:
+        - meson --buildtype=release build-release && meson compile -C build-release
+    artifacts:
+        paths:
+            - build-release
 
 ##### CARTO JOBS #####
 
@@ -86,3 +110,5 @@ sast-semgrep-carto-job:
         - semgrep --metrics=off --config=security/carto_module.yaml carto
         - semgrep --metrics=off --config=security/carto_module.yaml carto -o res.json --json
         - python3 security/pretty_printer_semgrep.py res.json
+
+
