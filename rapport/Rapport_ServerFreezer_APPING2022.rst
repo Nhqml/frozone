@@ -52,7 +52,7 @@ Les applications et les objectifs sont multiples étant donné qu'il s'agit d'un
 Monitorer le système
 ++++++++++++++++++++
 
-La génération d'un fichier d'information simple et concis permet un d'avoir un aperçu complet de l'activité sur la machine. On pourrait alors imaginer un outil se basant sur notre bibliothèque et qui permettrait de générer des logs de l'activité de la machine. Notez que la bibliothèque ne permet pas le monitoring de performance ou d'état de santé de la machine mais seulement des ressources en cours d'utilisation par celle-ci.
+La génération d'un fichier d'information simple et concis permet un d'avoir un aperçu complet de l'activité sur la machine. On pourrait alors imaginer un outil se basant sur notre bibliothèque et qui permettrait de générer des logs de l'activité de la machine. À noter que la bibliothèque ne permet pas le monitoring de performance ou d'état de santé de la machine mais seulement des ressources en cours d'utilisation par celle-ci.
 
 
 Mandatory Access Control: bloquer même l'utilisateur `root`
@@ -62,7 +62,7 @@ La plupart des OS mainstream sont basés sur le modèle DAC (Discretionary Acces
 
 Il existe un autre modèle, qui viens seulement en tant que surcouche de l'OS que l'on appel MAC (Mandatory Access Control) qui permet de renforcer la politique de sécurité. Les contrôle d'accès y sont obligatoires, même l'utilisateur root ne peut les contourner. Une fois que la politique est en place, les utilisateurs ne peuvent pas la modifier même s’ils ont les privilèges root. Les protections sont indépendantes des propriétaires.
 
-Évidemment il y a toujours un moyen de bypass cette solution pour qui voudrait vraiment le faire, mais cela force l'attaquant a réévaluer sa méthode d'attaque, l'accès root n'étant pas synonyme de plus haut niveau de privilège il s'agit d'un utilisateur comme les autres.
+Évidemment il y a toujours un moyen de contourner cette solution pour qui voudrait vraiment le faire, mais cela force l'attaquant a réévaluer sa méthode d'attaque, l'accès root n'étant pas synonyme de plus haut niveau de privilège il s'agit d'un utilisateur comme les autres.
 
 A l'origine le renforcement des politiques de contrôle d'accès a été largement démocratisé par le projet SELinux conçu par la NSA et confié à la communauté open source en 2000.
 
@@ -304,6 +304,18 @@ Les différentes options sont détaillées dans le tableau ci-dessous.
 | Module kernel       | Kernelland  | !           | !            | OUI       |
 +---------------------+-------------+-------------+--------------+-----------+
 
+Le Wrapper Shell indique une solution en C qui réutiliserait des commandes shell existantes, par exemple pour bloquer les connexions on utiliserait le firewall avec `ufw`.
+C'est une solution simple, mais peu efficace puisque très facilement contournée, en appelant les mêmes commandes avec des arguments permettant d'annuler les actions.
+
+"/etc/ld.so.preload" est un fichier qui liste les bibliothèques partagées à charger avant toutes les autres.
+Cette technique permet de remplacer des fonctions en C, notamment celles appelées juste avant le syscall, et aurait pu être intéressante pour notre cas.
+Cependant, cette technique peut être facilement contournée également en effaçant le fichier de la liste du fichier `/etc/ld.so.preload`.
+
+Il ne reste donc plus que le module kernel, qui présente des désavantages majeurs (notamment au niveau de la simplicité de développement, de la portabilité et la maintenabilité).
+Mais c'est le choix qui possède le plus de contrôle sur un système, vu que le code tourne au niveau du kernel, avec les droits les plus élevés, plus que l'utilisateur "root".
+C'est également le plus intéressant à implémenter, étant donné qu'il faut bien comprendre la programmation linux et kernel linux, et qu'il faut être encore plus vigilant sur la sécurité du code
+puisqu'il va tourner au niveau de privilège le plus élevé (éviter les bugs et / ou les vulnérabilités).
+
 
 Liste des ressources à geler
 ++++++++++++++++++++++++++++
@@ -464,11 +476,11 @@ Pour ajouter à une whitelist une adresse IP pour **TOUS** les utilisateurs **SA
 Communication Userland / Kernelland
 +++++++++++++++++++++++++++++++++++
 
-La lib étant appelable en mode userland, c'est à dire par un utilisateur, celle-ci doit communiquer avec le kernel pour pouvoir hook le syscalls.
-Cette communication se fait via une socket **netlink**. En userland, la ressource, l'id de l'utilisateur et l'action de l'utilisateur sont donc chargés et préparés à être envoyé au kernel.
+La lib étant appelable en mode userland, c'est à dire par un utilisateur, celle-ci doit communiquer avec le kernel pour pouvoir intéragir avec le module kernel.
+Cette communication se fait via un socket **netlink**. En userland, la ressource, l'id de l'utilisateur et l'action de l'utilisateur sont donc chargés et préparés à être envoyé au kernel.
 
-Lorsque le kernel reçoit ces informations, il va les interpréter pour préparer le hook du sycall pour un utilisateur.
-Concrètement, ces infos sont stockés côté kernel et lors de l'appel d'un sycall, le kernel vérifiera si le syscall est appelé par un utilisateur dont le freeze doit être fait.
+Lorsque le module kernel reçoit ces informations, il va les interpréter pour préparer le hook du syscall pour un utilisateur.
+Concrètement, ces infos sont stockées côté kernel et lors de l'appel d'un syscall, le kernel vérifiera si le syscall est appelé par un utilisateur dont le freeze doit être fait.
 
 .. image:: ../img/hook.png
 	 :scale: 400
@@ -481,13 +493,22 @@ Le hooking ou "contournement" d’appels systèmes va permettre un placement str
 A chaque syscall, une vérification va être faite pour savoir si le user doit avoir le comportement classique du syscall ou si celui-ci doit être modifié.
 Si l'utilisateur est dans la liste des utilisateurs dont le comportement du syscall doit être modifié, alors une deuxième vérification est effective.
 Cette vérification permet de savoir si les données qui composent le syscall sont dans la whitelist associée.
-Si c'est le cas, alors le comportement du syscall ne sera pas changé, sinon il sera modifié et ne fera absolument rien. Cette ressource est donc freeze.
+Si c'est le cas, alors le comportement du syscall ne sera pas changé, et l'utilisateur sera renvoyé vers le syscall d'origine.
+Sinon il sera modifié et bloqué. Cette ressource est donc "freeze".
 
 
 **Exemple pour le blocage de connexion :**
 
 .. image:: ../img/hook1.png
 	 :scale: 400
+
+
+Le hooking est effectué sur plusieurs syscalls clés permettant l'accès aux ressources intéressantes:
+- sys_openat: ouverture de fichiers + blocage utilisateur (avec une astuce)
+- sys_write: écriture de fichiers
+- sys_connect: établissement de connexions internet
+- sys_execve: exécution de processus
+
 
 Impact sur le système d’exploitation
 ++++++++++++++++++++++++++++++++++++
@@ -523,20 +544,22 @@ Les résultats sont les suivants:
 +-------------------------------------------------+-------------------+
 
 
-Sans pousser le test de performance plus loin on s'aperçoit que l'impact sur les temps de réponses est non négligeable à partir d'une whitelist contenant 10 000 éléments. Dans ce cas nous figure nous nous sommes intéressé uniquement au blocage des fichiers, celui-ci étant le plus coûteux pour le système.
+Sans pousser le test de performance plus loin on s'aperçoit que l'impact sur les temps de réponses est non négligeable à partir d'une whitelist contenant 10 000 éléments. Dans ce cas de figure nous nous sommes intéréssé uniquement au blocage des fichiers, celui-ci étant le plus coûteux pour le système.
 
 OpenBSD
 =======
 
 La partie cartographie de ce projet est partiellement compatible avec le système d'exploitation OpenBSD. Ce portage a été réalisé afin d'améliorer la portabilité de ce programme.
 
-Contrairement à debian, OpenBSD ne possède pas (par défaut) le système de fichiers "proc". Ce dernier est le principal outil utilisé dans la partie cartographie sur les systèmes debian. Nous avons donc utilisé des mesures alternatives pour cartographie sur les systèmes BSD.
+Contrairement à debian, OpenBSD ne possède pas (par défaut) le système de fichiers "proc". Ce dernier est le principal outil utilisé dans la partie cartographie sur les systèmes debian. Nous avons donc utilisé des mesures alternatives pour cartographier les systèmes BSD.
 
-La fonction "get_users" se comporte quasiment de la même façon sur openBSD que sur linux. La principale différence est l'utilisation sur les systèmes Linux de la bibliothèque "utmpx.h". Cette bibliothèque n'étant pas disponible sur OpenBSD, la bibliothèque "utmp.h" est utilisé.
+La fonction "get_users" se comporte quasiment de la même façon sur openBSD que sur linux. La principale différence est l'utilisation sur les systèmes Linux de la bibliothèque "utmpx.h". Cette bibliothèque n'étant pas disponible sur OpenBSD, la bibliothèque "utmp.h" est utilisée.
 
-Le système de fichier "proc" n'étant pas disponible sur OpenBSD, la bibliothèque "kvm.h" est utilisée pour lister les processus et les fichiers. La fonction "kvm_getprocs" de cette bibliothèque permet de récupérer les informations des processus. La fonction "kvm_getfiles" permet de récupérer les informations des fichiers ouverts. La structure "kinfo_proc" de cette bibliothèque permet de stocker les informations du processus. Similairement la structure "kinfo_file" permet de stocker ces informations du fichier.
+Le système de fichier "proc" n'étant pas disponible sur OpenBSD, la bibliothèque "kvm.h" est utilisée pour lister les processus et les fichiers. La fonction "kvm_getprocs" de cette bibliothèque permet de récupérer les informations des processus. La fonction "kvm_getfiles" permet de récupérer les informations des fichiers ouverts. 
 
-Considérant les nombreuses différence entre debian et BSD, en ce qui concerne la création et le chargement d'un module kernel, le portage de la partie freeze n'a pas été réalisé. Cela reste une piste intéressante pour les futures développements.
+La structure "kinfo_proc" de cette bibliothèque permet de stocker les informations du processus. Similairement la structure "kinfo_file" permet de stocker les informations du fichier.
+
+Considérant les nombreuses différences entre debian et BSD, en ce qui concerne la création et le chargement d'un module kernel, le portage de la partie freeze n'a pas été réalisé. Cela reste une piste intéressante pour les futures développements.
 
 TODO(erfan): Détail portage de la partie carto + Pistes pour la partie Freeze
 
@@ -550,13 +573,13 @@ Nous avons mis en place une pipeline de développement sur GitLab utilisant plus
 - Compilation du code C via `meson`
 - SAST avec semgrep et des règles basiques de sécurité pour détecter des simples cas de buffer overflow (dépassement de tampon) ou d'injection de code
 - Test Unitaires `CUnit`
-- Tests Unitaires `KUnit`
+- Tests Unitaires `KUnit` (à implémenter...)
 
 
 Projet
 ======
 
-Cette partie décrit l'organisation et terme de ressource et de temps ainsi que l'état d'avancement de notre Projet de Fin d'étude.
+Cette partie décrit l'organisation en terme de ressource et de temps ainsi que l'état d'avancement de notre Projet de Fin d'étude.
 
 Organisation
 +++++++++++++
@@ -573,12 +596,12 @@ Les développeurs se chargent d'écrire les test unitaires/fonctionnelles concer
 État d’avancement
 +++++++++++++++++
 
-Le projet contient a l'heure actuelle.
+Le projet contient à l'heure actuelle.
 
-Une solution fonctionnelle sous Ubuntu 20.04 :
+Une solution fonctionnelle sous Ubuntu 20.04 et 21.04 :
 
 - Une API de 4 fonctions permettant de générer un fichier contenant la cartographie du système
-- Un module kernel contenant des fonctions permettant de bloquer les syscalls relatifs aux ressources (users, processes, files, connections) et de débloquer les ressources fonctionnant avec une whitelist permettant d'autoriser des utilisations de syscalls pour certains utilisateur ou processus.
+- Un module kernel contenant des fonctions permettant de bloquer les syscalls relatifs aux ressources (utilisateurs, fichiers, connexions, processus) et de débloquer les ressources basé sur une whitelist sur les ressources (processus, fichiers, connexions).
 
 A COMPLETER
 
@@ -588,7 +611,8 @@ Difficultés rencontrées
 
 - Utilisation de C pour la partie Userland
 - Portage sous OpenBSD du module Kernel
-- Difficulté à trouver les leaks mémoire en KernelLand
+- Difficulté de trouver les leaks mémoire en KernelLand
+- Programmation sécurisée en kernelland, notamment dans la gestion de la transition mémoire userland->kernelland
 
 A COMPLETER
 
@@ -620,6 +644,8 @@ Man Linux
 
 [https://syscalls64.paolostivanin.com/]
 
-[http://www.ouah.org/LKM_HACKING.html%23I.1]
+Code source kernel linux [https://elixir.bootlin.com/linux/latest/source]
+
+The Linux Kernel Programming Guide: [https://sysprog21.github.io/lkmpg/]
 
 Cyber Imunnity: A bio inspired Cyber defence System [https://link.springer.com/chapter/10.1007/978-3-319-56154-7_19]
