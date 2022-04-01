@@ -3,13 +3,17 @@
  * Copyright (C) 2022 Kenji Gaillac, Valentin Seux
  */
 
- #include <carto.h>
-
+#include <carto.h>
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+
+#include "connections.h"
+#include "processes.h"
+#include "users.h"
+#include "utils.h"
 
 utmp_t** get_users(void)
 {
