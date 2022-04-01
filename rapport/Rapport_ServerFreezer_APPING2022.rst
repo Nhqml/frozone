@@ -415,6 +415,7 @@ Pour **LOCK**  les connexions internet via des sockets pour **UN** utilisateur :
    int freeze_connections_uid(unsigned int uid)
 
 Pour **UNLOCK** les connexions internet via des sockets pour **UN** utilisateur :
+
 .. code-block:: c
 
    int unfreeze_connections_uid(unsigned int uid)
