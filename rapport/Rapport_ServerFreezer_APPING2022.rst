@@ -345,29 +345,29 @@ Connections
 ###############
 
 Pour **LOCK**  les connexions internet via des sockets pour **UN** utilisateur :
-.. code-block::
-    `int freeze_connections_uid(unsigned int uid)`
+        .. code-block:: c
+        int freeze_connections_uid(unsigned int uid)
 
 Pour **UNLOCK** les connexions internet via des sockets pour **UN** utilisateur :
-.. code-block::
-    `int unfreeze_connections_uid(unsigned int uid)`
+    .. code-block:: c
+        int unfreeze_connections_uid(unsigned int uid)
 
 Pour ajouter à une whitelist une adresse IP pour **UN** utilisateur :
-.. code-block::
-    `int add_connection_whitelist(unsigned int uid, char *ipaddr)`
+    .. code-block:: c
+        int add_connection_whitelist(unsigned int uid, char *ipaddr)
 
 
 Pour **LOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** :
-.. code-block::
-    `int freeze_connections_except_uid(unsigned int uid)`
+    .. code-block:: c
+        int freeze_connections_except_uid(unsigned int uid)
 
 Pour **UNLOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** :
-.. code-block::
-    `int unfreeze_connections_except_uid(unsigned int uid)`
+    .. code-block:: c
+        int unfreeze_connections_except_uid(unsigned int uid)
 
 Pour ajouter à une whitelist une adresse IP pour **TOUS** les utilisateurs **SAUF UN** :
-.. code-block::
-    `int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)`
+    .. code-block:: c
+        int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)
 
 
 Communication Userland / Kernelland
