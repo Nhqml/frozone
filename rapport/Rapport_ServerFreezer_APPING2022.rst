@@ -239,7 +239,7 @@ Commande Linux : w
 Arbre de Processus: get_processes
 ##################################
 
-Concernant les processus actifs sur la machine, il est indispensable d’obtenir une liste structuré contenant l’ensemble des processus lancés leur provenenance, leurs droits ou encore les fichiers accédés.
+Concernant les processus actifs sur la machine, il est indispensable d’obtenir une liste structurée contenant l’ensemble des processus lancés, leur provenenance, leurs droits ou encore les fichiers qu'ils accèdent.
 
 Commande Linux : top
 
