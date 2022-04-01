@@ -12,7 +12,7 @@
 
 #include "./carto.h"
 #include "../carto/src/processes.h"
-#include "../utils.h"
+#include "./utils.h"
 
 utmp_t** get_users(void)
 {
