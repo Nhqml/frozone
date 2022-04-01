@@ -10,6 +10,12 @@
 #include <sys/sysctl.h>
 #include <err.h>
 
+#include "../carto/include/carto.h"
+#include "../carto/src/processes.h"
+#include "../carto/src/utils.h"
+
+typedef struct utmp utmp_t;
+
 utmp_t** get_users(void)
 {
 	struct utmp utmp;
