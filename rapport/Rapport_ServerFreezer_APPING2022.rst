@@ -12,6 +12,7 @@ Server Freezer: Un démon Linux pour cartographier et geler la configuration d�
 
 .. image:: ../img/EPITA.png
         :scale: 500
+        :align: center
 
 
 .. image:: ../img/logo_apprenti.png
@@ -325,7 +326,7 @@ Pour **UNLOCK** l'exécution des process pour **TOUS** les utilisateurs **SAUF U
 Pour ajouter à une whitelist un process pour **TOUS** les utilisateurs **SAUF UN** : `int add_process_whitelist_except_uid(unsigned int uid, char *process_name)`
 
 Files
-##########
+######
 
 Pour **LOCK**  l'ouverture et l'écriture de fichiers pour **UN** utilisateur : `int freeze_files_uid(unsigned int uid)`
 
@@ -343,22 +344,34 @@ Pour ajouter à une whitelist un nom de fichiers pour **TOUS** les utilisateurs 
 Connections
 ###############
 
-Pour **LOCK**  les connexions internet via des sockets pour **UN** utilisateur : `int freeze_connections_uid(unsigned int uid)`
+Pour **LOCK**  les connexions internet via des sockets pour **UN** utilisateur :
+.. code-block::
+    `int freeze_connections_uid(unsigned int uid)`
 
-Pour **UNLOCK** les connexions internet via des sockets pour **UN** utilisateur : `int unfreeze_connections_uid(unsigned int uid)`
+Pour **UNLOCK** les connexions internet via des sockets pour **UN** utilisateur :
+.. code-block::
+    `int unfreeze_connections_uid(unsigned int uid)`
 
-Pour ajouter à une whitelist une adresse IP pour **UN** utilisateur : `int add_connection_whitelist(unsigned int uid, char *ipaddr)`
+Pour ajouter à une whitelist une adresse IP pour **UN** utilisateur :
+.. code-block::
+    `int add_connection_whitelist(unsigned int uid, char *ipaddr)`
 
 
-Pour **LOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** : `int freeze_connections_except_uid(unsigned int uid)`
+Pour **LOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** :
+.. code-block::
+    `int freeze_connections_except_uid(unsigned int uid)`
 
-Pour **UNLOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** : `int unfreeze_connections_except_uid(unsigned int uid)`
+Pour **UNLOCK** les connexions internet via des sockets pour **TOUS** les utilisateurs **SAUF UN** :
+.. code-block::
+    `int unfreeze_connections_except_uid(unsigned int uid)`
 
-Pour ajouter à une whitelist une adresse IP pour **TOUS** les utilisateurs **SAUF UN** : `int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)`
+Pour ajouter à une whitelist une adresse IP pour **TOUS** les utilisateurs **SAUF UN** :
+.. code-block::
+    `int add_connection_whitelist_except_uid(unsigned int uid, char *ipaddr)`
 
 
 Communication Userland / Kernelland
-++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++
 
 La lib étant appelable en mode userland, c'est à dire par un utilisateur, celle-ci doit communiquer avec le kernel pour pouvoir hook le syscalls.
 Cette communication se fait via une socket **netlink**. En userland, la ressource, l'id de l'utilisateur et l'action de l'utilisateur sont donc chargés et préparés à être envoyé au kernel.
