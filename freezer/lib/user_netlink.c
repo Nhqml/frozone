@@ -17,7 +17,7 @@
 #include "user_netlink.h"
 
 #define NETLINK_USER 31
-#define MAX_PAYLOAD 1024 /* maximum payload size */
+#define MAX_PAYLOAD 1024 /* maximum payload size*/
 #define MAX_PASSWD 1024 /* maximum password struct size */
 
 struct sockaddr_nl src_addr, dest_addr;
@@ -214,18 +214,17 @@ bool receive_message(int sock_fd)
 ** \param sock_fd Socket file descriptor of the communication with the kernel
 ** \return bool
 */
-bool exit_socket(int sock_fd)
+int exit_socket(int sock_fd)
 {
     // printf("Exiting socket\n");
-
-    if (nlh)
+    
+    if (nlh != NULL)
+    {
         free(nlh);
+    }
 
     // close socket
-    if (close(sock_fd) < 0)
-        return false;
-
-    return true;
+    return close(sock_fd);
 }
 
 bool send_socket_msg(int resource, unsigned int uid, int action, char* resource_data)

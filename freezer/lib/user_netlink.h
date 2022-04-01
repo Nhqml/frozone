@@ -6,6 +6,7 @@
 #ifndef FREEZER_LIB_USER_NETLINK_H_
 #define FREEZER_LIB_USER_NETLINK_H_
 
+
 /**
 ** \brief Send message to the kernel through a netlink socket for one uid
 **
